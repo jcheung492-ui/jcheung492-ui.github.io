@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>张百星 Justin · 音乐制作人</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Noto+Serif+SC:wght@400;500;600;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body class="texture-on">
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#f7f3ec"></rect>
+    <circle cx="50" cy="44" r="20" fill="none" stroke="#a96a3c" stroke-width="2.5"></circle>
+    <circle cx="50" cy="44" r="4" fill="#a96a3c"></circle>
+    <path d="M50 24 v-7 M64 30 l5 -5 M36 30 l-5 -5" stroke="#2b2723" stroke-width="2" stroke-linecap="round"></path>
+    <text x="50" y="82" font-family="Georgia, serif" font-size="13" fill="#2b2723" text-anchor="middle">Justin</text>
+  </svg>
+</template>
+
+<!-- ===================== 常驻 banner / 导航 ===================== -->
+<nav class="site-nav" data-screen-label="导航">
+  <div class="wrap">
+    <a class="nav-name" href="#/" data-nav="home">张百星 <em>·</em> Justin</a>
+    <div class="nav-links">
+      <a href="#/works" data-nav="works">Works</a>
+      <a href="#/journal" data-nav="journal">Journal</a>
+      <a href="#/about" data-nav="about">About</a>
+      <a href="#/guestbook" data-nav="guestbook">Guestbook</a>
+      <a href="#/contact" data-nav="contact">Contact</a>
+      <a href="#/sketches" data-nav="sketches" class="nav-cta cta-soft" id="nav-sketches">Sketchbook</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+<!-- ===================== 首页 ===================== -->
+<div class="page" id="page-home" data-screen-label="首页">
+  <header class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kicker">Hello, I make music</p>
+        <h1>白天在公司做音乐，<br>晚上把剩下的情绪<em>慢慢写成歌</em>。</h1>
+        <p class="hero-line">我是张百星，朋友们叫我 Justin。做编曲、做制作、也做混音——但说到底，我只是想把日子里那些说不清楚的部分，变成可以反复去听的声音。</p>
+        <div class="hero-roles">
+          <span>Producer</span><span>Arranger</span><span>Mixing Engineer</span>
+        </div>
+        <div class="hero-ctas">
+          <a class="hero-cta" href="#/works"><span class="dot"></span>听听我的作品</a>
+          <a class="hero-cta ghost" href="#/about">关于我</a>
+        </div>
+      </div>
+      <figure class="portrait-frame">
+        <div class="ph ph-portrait">你的照片 · portrait</div>
+        <figcaption>张百星 / Justin Zhang</figcaption>
+      </figure>
+    </div>
+  </header>
+  <section class="home-strip">
+    <div class="wrap">
+      <a class="strip-link" href="#/works">
+        <span class="strip-en">Works</span>
+        <span class="strip-cn">专辑、广告与游戏配乐、电影</span>
+        <span class="strip-arrow">→</span>
+      </a>
+      <a class="strip-link" href="#/journal">
+        <span class="strip-en">Journal</span>
+        <span class="strip-cn">生活，和一些没写进歌里的话</span>
+        <span class="strip-arrow">→</span>
+      </a>
+      <a class="strip-link" href="#/guestbook">
+        <span class="strip-en">Guestbook</span>
+        <span class="strip-cn">路过的话，留个名字、说句话</span>
+        <span class="strip-arrow">→</span>
+      </a>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== 作品 ===================== -->
+<div class="page" id="page-works" hidden data-screen-label="作品">
+  <div class="page-head">
+    <div class="wrap">
+      <p class="kicker">Works</p>
+      <h1 class="page-title">作品</h1>
+      <p class="page-sub">专辑、广告配乐、游戏配乐可以直接听；电影部分只放海报与一段文字。</p>
+    </div>
+  </div>
+  <div class="wrap">
+    <div id="works-cats"></div>
+
+    <!-- 管理面板:页脚点「管理」后出现 -->
+    <div class="admin-panel" id="admin-panel">
+      <h3>上架 / 管理作品</h3>
+      <p class="admin-note">封面是每条作品的必填项；专辑/广告/游戏还需要音频文件，电影类可只放封面。上传的内容保存在你这台设备的浏览器里——正式公开时，把文件放进 <code>audio/</code>、<code>covers/</code> 并在 <code>js/data.js</code> 里照格式添加即可。</p>
+      <form class="admin-form" id="admin-form">
+        <label>分类
+          <select id="af-cat">
+            <option value="album">专辑</option>
+            <option value="ad">广告配乐</option>
+            <option value="game">游戏配乐</option>
+            <option value="sketch">随手录 / demo</option>
+            <option value="film">电影(只放封面)</option>
+          </select>
+        </label>
+        <label>年份(可选)
+          <input type="text" id="af-year" placeholder="2026" autocomplete="off">
+        </label>
+        <label>作品标题
+          <input type="text" id="af-title" placeholder="比如:夏夜的风" autocomplete="off">
+        </label>
+        <label>英文名(可选)
+          <input type="text" id="af-en" placeholder="Summer Night Breeze" autocomplete="off">
+        </label>
+        <label>角色 / 标签(可选)
+          <input type="text" id="af-role" placeholder="制作 / 编曲 / 混音" autocomplete="off">
+        </label>
+        <label id="af-audio-label">
+          <span class="lbl">音频文件 (mp3 / wav / m4a)</span>
+          <input type="file" id="af-audio" accept="audio/*">
+        </label>
+        <label class="full">一段介绍(可选)
+          <input type="text" id="af-desc" placeholder="写在这首歌 / 这部片子发生的时刻" autocomplete="off">
+        </label>
+        <label class="full" id="af-cover-label">
+          <span class="lbl">封面 (jpg / png)</span>
+          <input type="file" id="af-cover" accept="image/*">
+        </label>
+        <button type="submit">上架</button>
+      </form>
+      <p class="admin-status" id="admin-status"></p>
+      <div class="admin-tracklist" id="admin-tracklist"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== 随手录 (独立页面) ===================== -->
+<div class="page" id="page-sketches" hidden data-screen-label="随手录">
+  <div class="page-head">
+    <div class="wrap">
+      <p class="kicker" id="sketches-kicker">Sketchbook</p>
+      <h1 class="page-title" id="sketches-title">灵感草稿</h1>
+      <p class="page-sub" id="sketches-intro">最近的翻唱、路上哼出来的动机、来不及做完的奇思妙想。不是成品,只是不想让它们安静地消失。</p>
+    </div>
+  </div>
+  <div class="wrap">
+    <div id="sketch-strip" class="on-page"></div>
+  </div>
+</div>
+
+<!-- ===================== 随笔 ===================== -->
+<div class="page" id="page-journal" hidden data-screen-label="随笔">
+  <div class="page-head">
+    <div class="wrap">
+      <p class="kicker">Journal</p>
+      <h1 class="page-title">生活，和一些没写进歌里的话</h1>
+      <p class="page-sub">不定期更新的小随笔。想改、想加,直接编辑这一段的文字就好。</p>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="writing-list">
+      <article class="writing-item">
+        <div class="writing-date">2026.05.28</div>
+        <div class="writing-body">
+          <h3>关于加班后的耳朵</h3>
+          <p>混了一整天别人的歌，下班路上反而什么都不想听。可走到楼下，听见有人在练萨克斯，跑调跑得很认真——突然觉得，这才是我最开始喜欢音乐的样子。</p>
+        </div>
+      </article>
+      <article class="writing-item">
+        <div class="writing-date">2026.04.13</div>
+        <div class="writing-body">
+          <h3>雨天适合写桥段</h3>
+          <p>不知道为什么，主歌和副歌都可以在晴天写，但桥段一定要等下雨。可能桥段本来就是歌里那段「说真话」的部分吧。</p>
+        </div>
+      </article>
+      <article class="writing-item">
+        <div class="writing-date">2026.02.07</div>
+        <div class="writing-body">
+          <h3>新年第一首 demo</h3>
+          <p>每年的第一首 demo 都会写得特别小心，像在新本子的第一页写字。今年的第一首还没有名字，但我知道它是写给去年没说出口的那些「谢谢」的。</p>
+        </div>
+      </article>
+    </div>
+
+    <!-- 子模块:光影图廊 -->
+    <section class="gallery-block" aria-label="光影">
+      <div class="gallery-head">
+        <p class="kicker">Gallery</p>
+        <h2 class="gallery-title">光影</h2>
+        <p class="gallery-sub">一些我觉得好看的风景和工作照。点开任意一张,有一行字。</p>
+      </div>
+      <div class="gallery-grid" id="gallery-grid"></div>
+    </section>
+  </div>
+</div>
+
+<!-- ===================== 分类详情(查看更多) ===================== -->
+<div class="page" id="page-catdetail" hidden data-screen-label="分类详情">
+  <div class="page-head">
+    <div class="wrap" id="catdetail-head"></div>
+  </div>
+  <div class="wrap">
+    <div id="catdetail-strip"></div>
+  </div>
+</div>
+
+<!-- ===================== 关于 ===================== -->
+<div class="page" id="page-about" hidden data-screen-label="关于">
+  <div class="page-head">
+    <div class="wrap">
+      <p class="kicker">About</p>
+      <h1 class="page-title">关于我</h1>
+      <p class="page-sub">一个在公司上班的音乐人。</p>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="about-grid">
+      <figure class="portrait-frame" style="transform: rotate(-1deg);">
+        <div class="ph ph-about">生活照 · candid</div>
+        <figcaption>工作室的某个下午</figcaption>
+      </figure>
+      <div class="about-text">
+        <p><strong>张百星(Justin)</strong>，音乐制作人。白天在公司做音乐相关的工作，是同事眼里「管声音的人」；下班以后继续做音乐，是自己歌里「被声音管着的人」。</p>
+        <p>主要做<strong>编曲、制作和混音</strong>。流行、民谣、一点点电子——风格不算固定，因为我更在意的是：这首歌想说的那句话，有没有被听见。</p>
+        <p>如果你有一首写到一半的歌、一段不知道怎么处理的旋律，或者只是想找人聊聊音乐，都欢迎来找我。我回消息可能慢，但一定会回。</p>
+        <dl class="about-facts">
+          <div class="about-fact"><dt>角色</dt><dd>制作人 / 编曲 / 混音工程师</dd></div>
+          <div class="about-fact"><dt>常驻</dt><dd>中国 · 城市待填(改我)</dd></div>
+          <div class="about-fact"><dt>合作方式</dt><dd>远程为主,可约线下;先聊歌,再聊别的</dd></div>
+          <div class="about-fact"><dt>最近在做</dt><dd>自己的第一张小专辑(慢慢来)</dd></div>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== 留言板 ===================== -->
+<div class="page" id="page-guestbook" hidden data-screen-label="留言板">
+  <div class="page-head">
+    <div class="wrap">
+      <p class="kicker">Guestbook</p>
+      <h1 class="page-title">留言板</h1>
+      <p class="page-sub">路过的话，留个名字、说句话吧。</p>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="gb-grid">
+      <form class="gb-form" id="gb-form">
+        <label for="gb-name">你的名字</label>
+        <input type="text" id="gb-name" placeholder="随便起一个也行" autocomplete="off">
+        <label for="gb-text">想说的话</label>
+        <textarea id="gb-text" rows="4" placeholder="听完歌的感受、想合作的歌、或者今天的天气…"></textarea>
+        <button type="submit">留下这句话</button>
+        <p class="gb-hint">※ 目前留言保存在你自己的浏览器里，只有你能看到。等接上后端之后，大家就能互相看见了。</p>
+      </form>
+      <div class="gb-list" id="gb-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== 联系 ===================== -->
+<div class="page" id="page-contact" hidden data-screen-label="联系">
+  <div class="page-head">
+    <div class="wrap">
+      <p class="kicker">Contact</p>
+      <h1 class="page-title">找到我</h1>
+      <p class="page-sub">关于合作、关于歌，或者只是打个招呼。</p>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="contact-grid">
+      <div class="contact-card">
+        <h3>Email</h3>
+        <p><a href="mailto:hello@justinzhang.example">hello@justinzhang.example</a>
+        <span class="sub">最稳妥的方式,24–48 小时内回复</span></p>
+      </div>
+      <div class="contact-card">
+        <h3>微信</h3>
+        <p>justin_bx(改成你的)
+        <span class="sub">加好友时备注「音乐」会更快通过</span></p>
+      </div>
+      <div class="contact-card">
+        <h3>听我的歌</h3>
+        <p><a href="#/works">网易云音乐 · 待填链接</a>
+        <span class="sub">也可以换成 QQ 音乐 / B 站 / 小红书</span></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- ===================== 页脚 ===================== -->
+<footer data-screen-label="页脚">
+  <div class="wrap">
+    <span class="foot-copy">© 2026 张百星 Justin · 谢谢你听到这里</span>
+    <button class="admin-link" id="admin-toggle" type="button">⚙ 管理</button>
+  </div>
+</footer>
+
+<!-- ===================== 常驻播放条 ===================== -->
+<div class="player-bar" id="player-bar" data-screen-label="播放器">
+  <div class="player-inner">
+    <img class="pb-cover" id="pb-cover" src="covers/morning-mist.png" alt="正在播放的封面">
+    <div class="pb-controls">
+      <button class="pb-btn" id="pb-prev" type="button" aria-label="上一首"><svg viewBox="0 0 16 16"><path d="M3.5 2h1.8v12H3.5zM13 2.6v10.8c0 .5-.6.8-1 .5L5.6 8.5a.6.6 0 0 1 0-1L12 2.1c.4-.3 1 0 1 .5z"></path></svg></button>
+      <button class="pb-btn pb-play" id="pb-play" type="button" aria-label="播放/暂停"><svg viewBox="0 0 16 16"><path d="M3 1.7v12.6c0 .6.6.9 1.1.6l10-6.3c.5-.3.5-1 0-1.3l-10-6.3C3.6.8 3 1.1 3 1.7z"></path></svg></button>
+      <button class="pb-btn" id="pb-next" type="button" aria-label="下一首"><svg viewBox="0 0 16 16"><path d="M10.7 2h1.8v12h-1.8zM3 2.6v10.8c0 .5.6.8 1 .5l6.4-5.4a.6.6 0 0 0 0-1L4 2.1c-.4-.3-1 0-1 .5z"></path></svg></button>
+    </div>
+    <div class="pb-main">
+      <div class="pb-title-row">
+        <span class="pb-title" id="pb-title">—</span>
+        <span class="pb-time" id="pb-time">0:00 / 0:00</span>
+      </div>
+      <input class="pb-seek" id="pb-seek" type="range" min="0" max="100" value="0" step="0.1" aria-label="播放进度">
+    </div>
+    <button class="pb-btn pb-close" id="pb-close" type="button" aria-label="关闭播放器"><svg viewBox="0 0 16 16"><path d="M3.2 2 8 6.8 12.8 2 14 3.2 9.2 8l4.8 4.8-1.2 1.2L8 9.2 3.2 14 2 12.8 6.8 8 2 3.2z"></path></svg></button>
+  </div>
+</div>
+
+<!-- ===================== 脚本 ===================== -->
+<script src="js/data.js"></script>
+<script src="js/library.js"></script>
+<script src="js/comments.js"></script>
+<script src="js/player.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/guestbook.js"></script>
+<script src="js/gallery.js"></script>
+<script src="js/router.js"></script>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="js/tweaks-panel.jsx"></script>
+<script type="text/babel" src="js/tweaks.jsx"></script>
+
+</body>
+</html>
