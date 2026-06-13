@@ -1,2 +1,6 @@
 .DS_Store
 *.log
+
+# 开发辅助文件,不进公开仓库
+memory.md
+_font-preview/

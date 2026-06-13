@@ -1,11 +1,21 @@
 // ============================================================
-// 音源库 musicLib —— 上传的 mp3 + 封面存在浏览器 IndexedDB 里
-// 默认曲目的「下架」状态存在 localStorage
+// 音源库 musicLib —— 合并三种来源,统一供播放器 / 管理面板使用
+//   1) 默认占位  window.SITE_TRACKS    (js/data.js,手写;可「下架」)
+//   2) 已发布    window.SITE_PUBLISHED (js/published.js,面板维护;封面/音频在仓库里)
+//   3) 本地草稿  IndexedDB             (面板里暂存、尚未发布的内容,只在本机可见)
+//
+// 「未发布的本地改动」分四种,都先记在本机,点「发布」后才对所有人生效:
+//   · 新增草稿作品        -> IndexedDB
+//   · 下架默认作品        -> localHidden
+//   · 恢复(已发布的)下架  -> pendingUnhide
+//   · 删除已发布作品      -> pendingDelete
 // ============================================================
 (function () {
   const DB_NAME = "bx-music";
   const STORE = "tracks";
-  const HIDDEN_KEY = "bx-hidden-builtins";
+  const HIDDEN_KEY = "bx-hidden-builtins";   // 草稿:待下架的默认作品 id
+  const UNHIDE_KEY = "bx-pending-unhide";    // 草稿:待恢复上架的(已发布下架的)默认作品 id
+  const DELETE_KEY = "bx-pending-delete";    // 草稿:待删除的已发布作品 id
 
   function openDB() {
     return new Promise((resolve, reject) => {
@@ -31,18 +41,22 @@
     });
   }
 
-  function getHidden() {
-    try { return JSON.parse(localStorage.getItem(HIDDEN_KEY) || "[]"); }
+  function getList(key) {
+    try { return JSON.parse(localStorage.getItem(key) || "[]"); }
     catch (e) { return []; }
   }
-  function setHidden(arr) {
-    localStorage.setItem(HIDDEN_KEY, JSON.stringify(arr));
+  function setList(key, arr) { localStorage.setItem(key, JSON.stringify(arr)); }
+  function addTo(key, id) { const a = getList(key); if (!a.includes(id)) { a.push(id); setList(key, a); } }
+  function removeFrom(key, id) { setList(key, getList(key).filter((x) => x !== id)); }
+
+  function publishedHidden() {
+    return Array.isArray(window.SITE_HIDDEN) ? window.SITE_HIDDEN : [];
   }
 
   const objectUrls = new Map();
 
   window.musicLib = {
-    // 所有自定义曲目(IndexedDB)
+    // 所有本地草稿（IndexedDB）
     async getCustom() {
       const db = await openDB();
       return new Promise((resolve, reject) => {
@@ -53,26 +67,47 @@
       });
     },
 
-    // 合并后的完整曲库(含隐藏标记),给管理面板用
+    // 合并后的完整曲库（含来源 / 草稿状态），给管理面板用
+    //   source: "builtin" | "published" | "draft"
+    //   hidden:        该 builtin 当前是否处于下架状态
+    //   pendingHide:   下架是「本地草稿、尚未发布」
+    //   pendingUnhide: 恢复上架是「本地草稿、尚未发布」
+    //   pendingDelete: 该已发布作品被标记为「待删除、尚未发布」
     async getAllWithHidden() {
-      const hidden = new Set(getHidden());
-      const custom = await this.getCustom();
-      const builtins = (window.SITE_TRACKS || []).map((t) => ({
-        ...t, hidden: hidden.has(t.id)
+      const localHidden = new Set(getList(HIDDEN_KEY));
+      const pubHidden = new Set(publishedHidden());
+      const pendUnhide = new Set(getList(UNHIDE_KEY));
+      const pendDelete = new Set(getList(DELETE_KEY));
+
+      const builtins = (window.SITE_TRACKS || []).map((t) => {
+        const hiddenNow = (pubHidden.has(t.id) || localHidden.has(t.id)) && !pendUnhide.has(t.id);
+        return {
+          ...t, source: "builtin",
+          hidden: hiddenNow,
+          pendingHide: localHidden.has(t.id) && !pubHidden.has(t.id),
+          pendingUnhide: pendUnhide.has(t.id)
+        };
+      });
+
+      const published = (window.SITE_PUBLISHED || []).map((t) => ({
+        ...t, source: "published", builtin: false, hidden: false,
+        pendingDelete: pendDelete.has(t.id)
       }));
-      const customViews = custom
+
+      const drafts = (await this.getCustom())
         .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
         .map((t) => this.toPlayable(t));
-      return builtins.concat(customViews);
+
+      return builtins.concat(published, drafts);
     },
 
-    // 上架中的曲目(播放器用)
+    // 上架中的曲目（播放器用）：默认(未下架) + 已发布(未待删) + 本地草稿
     async getVisible() {
       const all = await this.getAllWithHidden();
-      return all.filter((t) => !t.hidden);
+      return all.filter((t) => !t.hidden && !t.pendingDelete);
     },
 
-    // IndexedDB 记录 -> 可播放对象(blob 转 URL)
+    // IndexedDB 草稿记录 -> 可播放对象（blob 转 URL）
     toPlayable(rec) {
       if (!objectUrls.has(rec.id + ":cover")) {
         objectUrls.set(rec.id + ":audio", rec.audioBlob ? URL.createObjectURL(rec.audioBlob) : null);
@@ -80,6 +115,7 @@
       }
       return {
         id: rec.id,
+        source: "draft",
         category: rec.category || "album",
         title: rec.title,
         en: rec.en || "",
@@ -92,15 +128,12 @@
       };
     },
 
+    // 新增一条本地草稿（尚未发布）
     async add({ category, title, en, year, role, desc, audioFile, coverFile }) {
       const rec = {
         id: "custom-" + Date.now() + "-" + Math.floor(Math.random() * 1e4),
         category: category || "album",
-        title: title,
-        en: en || "",
-        year: year || "",
-        role: role || "",
-        desc: desc || "",
+        title: title, en: en || "", year: year || "", role: role || "", desc: desc || "",
         audioBlob: audioFile || null,
         coverBlob: coverFile || null,
         createdAt: Date.now()
@@ -109,6 +142,7 @@
       return rec;
     },
 
+    // 删除一条本地草稿（立即生效，仅本机）
     async remove(id) {
       await tx("readwrite", (s) => s.delete(id));
       const a = objectUrls.get(id + ":audio");
@@ -119,12 +153,43 @@
       objectUrls.delete(id + ":cover");
     },
 
+    // 下架默认作品（草稿）
     hideBuiltin(id) {
-      const h = getHidden();
-      if (!h.includes(id)) { h.push(id); setHidden(h); }
+      removeFrom(UNHIDE_KEY, id);   // 取消可能存在的「恢复」草稿
+      addTo(HIDDEN_KEY, id);
     },
+    // 恢复上架（草稿）：本地下架的直接去掉；已发布下架的记入待恢复
     unhideBuiltin(id) {
-      setHidden(getHidden().filter((x) => x !== id));
+      const localHidden = getList(HIDDEN_KEY);
+      if (localHidden.includes(id)) { removeFrom(HIDDEN_KEY, id); return; }
+      if (publishedHidden().includes(id)) { addTo(UNHIDE_KEY, id); }
+    },
+
+    // 删除已发布作品（草稿）/ 撤销删除
+    deletePublished(id) { addTo(DELETE_KEY, id); },
+    undoDeletePublished(id) { removeFrom(DELETE_KEY, id); },
+
+    // ---- 发布相关：给 publish.js 用 ----
+    getLocalHidden()  { return getList(HIDDEN_KEY); },
+    getPendingUnhide() { return getList(UNHIDE_KEY); },
+    getPendingDelete() { return getList(DELETE_KEY); },
+
+    // 是否有未发布的本地改动
+    async hasLocalChanges() {
+      const drafts = await this.getCustom();
+      return drafts.length > 0 ||
+        getList(HIDDEN_KEY).length > 0 ||
+        getList(UNHIDE_KEY).length > 0 ||
+        getList(DELETE_KEY).length > 0;
+    },
+
+    // 发布成功后清空所有本地草稿
+    async clearLocalAfterPublish() {
+      const drafts = await this.getCustom();
+      for (const d of drafts) await this.remove(d.id);
+      setList(HIDDEN_KEY, []);
+      setList(UNHIDE_KEY, []);
+      setList(DELETE_KEY, []);
     }
   };
 })();

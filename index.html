@@ -6,8 +6,7 @@
 <title>张百星 Justin · 音乐制作人</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Noto+Serif+SC:wght@400;500;600;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/site.css">
 </head>
 <body class="texture-on">
@@ -104,7 +103,27 @@
     <!-- 管理面板:页脚点「管理」后出现 -->
     <div class="admin-panel" id="admin-panel">
       <h3>上架 / 管理作品</h3>
-      <p class="admin-note">封面是每条作品的必填项；专辑/广告/游戏还需要音频文件，电影类可只放封面。上传的内容保存在你这台设备的浏览器里——正式公开时，把文件放进 <code>audio/</code>、<code>covers/</code> 并在 <code>js/data.js</code> 里照格式添加即可。</p>
+      <p class="admin-note">封面是每条作品的必填项；专辑/广告/游戏还需要音频文件，电影类可只放封面。改动会先存成<strong>本地草稿</strong>（只有你自己看得到），确认无误后点下方<strong>「发布到线上」</strong>一次性提交，约 1 分钟后所有人可见。</p>
+
+      <!-- 发布栏:未发布改动 + 一键发布 + Token 设置 -->
+      <div class="admin-publish" id="admin-publish-bar">
+        <div class="ap-row">
+          <span class="ap-count" id="admin-changecount">没有未发布的改动</span>
+          <button type="button" id="admin-publish-btn" disabled>发布到线上</button>
+          <button type="button" class="ap-link" id="admin-token-toggle">设置 Token</button>
+        </div>
+        <p class="admin-status" id="admin-publish-status"></p>
+        <div class="ap-token" id="admin-token-box" hidden>
+          <p class="ap-hint">在 GitHub 生成一个 Fine-grained Token（仅授权本仓库 Contents: Read and write），粘贴到这里。它只存在你的浏览器里。</p>
+          <div class="ap-row">
+            <input type="password" id="admin-token" placeholder="github_pat_..." autocomplete="off">
+            <button type="button" id="admin-token-save">保存并测试</button>
+            <button type="button" class="ap-link" id="admin-token-clear">清除</button>
+          </div>
+          <p class="admin-status" id="admin-token-status"></p>
+        </div>
+      </div>
+
       <form class="admin-form" id="admin-form">
         <label>分类
           <select id="af-cat">
@@ -138,7 +157,7 @@
           <span class="lbl">封面 (jpg / png)</span>
           <input type="file" id="af-cover" accept="image/*">
         </label>
-        <button type="submit">上架</button>
+        <button type="submit">加入草稿</button>
       </form>
       <p class="admin-status" id="admin-status"></p>
       <div class="admin-tracklist" id="admin-tracklist"></div>
@@ -333,7 +352,9 @@
 
 <!-- ===================== 脚本 ===================== -->
 <script src="js/data.js"></script>
+<script src="js/published.js"></script>
 <script src="js/library.js"></script>
+<script src="js/publish.js"></script>
 <script src="js/comments.js"></script>
 <script src="js/player.js"></script>
 <script src="js/admin.js"></script>
@@ -341,12 +362,6 @@
 <script src="js/gallery.js"></script>
 <script src="js/router.js"></script>
 <script src="js/theme.js"></script>
-
-<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
-<script type="text/babel" src="js/tweaks-panel.jsx"></script>
-<script type="text/babel" src="js/tweaks.jsx"></script>
 
 </body>
 </html>

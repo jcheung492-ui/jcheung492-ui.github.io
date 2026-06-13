@@ -50,7 +50,7 @@
         '<div class="work-body">' +
           (t.en ? '<p class="work-en">' + esc(t.en) + "</p>" : "") +
           '<h3 class="work-title">' + esc(t.title) +
-            (t.builtin ? "" : '<span class="work-tag">自传</span>') + "</h3>" +
+            (t.source === "draft" ? '<span class="work-tag">草稿</span>' : "") + "</h3>" +
           (metaLine(t) ? '<p class="work-meta">' + esc(metaLine(t)) + "</p>" : "") +
           (t.desc ? '<p class="work-desc">' + esc(t.desc) + "</p>" : "") +
           (playable
@@ -175,7 +175,7 @@
           '<div class="sketch-info">' +
             (t.en ? '<p class="sketch-en">' + esc(t.en) + "</p>" : "") +
             '<h4 class="sketch-title">' + esc(t.title) +
-              (t.builtin ? "" : '<span class="work-tag">自传</span>') + "</h4>" +
+              (t.source === "draft" ? '<span class="work-tag">草稿</span>' : "") + "</h4>" +
             (t.desc ? '<p class="sketch-desc">' + esc(t.desc) + "</p>" : "") +
           "</div>" +
         "</article>"

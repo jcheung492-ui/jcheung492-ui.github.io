@@ -9,12 +9,12 @@
   --ink: #2b2723;              /* 正文墨色 */
   --ink-soft: #565049;         /* 次级文字 */
   --muted: #8d857a;            /* 弱化文字 / 日期 */
-  --accent: oklch(0.58 0.09 50);        /* 点缀色 · 落日橘 */
-  --accent-soft: oklch(0.58 0.09 50 / 0.12);
+  --accent: #a96a3c;                    /* 点缀色 · 落日橘 */
+  --accent-soft: rgba(169, 106, 60, 0.12);
   --rule: rgba(43, 39, 35, 0.16);       /* 细分隔线 */
   --card: rgba(255, 253, 248, 0.72);
 
-  --font-cjk: "Noto Serif SC", "Songti SC", "SimSun", serif;  /* 中文字体 · Tweaks 可换 */
+  --font-cjk: "Noto Serif SC", "Songti SC", "SimSun", serif;  /* 中文字体 · 思源宋体 */
   --font-display: "Cormorant Garamond", var(--font-cjk), Georgia, serif;
   --font-serif: "Cormorant Garamond", var(--font-cjk), Georgia, serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
@@ -102,8 +102,9 @@ img { max-width: 100%; display: block; }
 .nav-name em { font-style: normal; color: var(--accent); }
 .nav-links { display: flex; gap: 26px; flex-wrap: wrap; align-items: baseline; }
 .nav-links a {
-  font-size: 14.5px; text-decoration: none; color: var(--ink-soft);
-  letter-spacing: 0.06em;
+  font-family: var(--font-mono); text-transform: uppercase;
+  font-size: 12.5px; text-decoration: none; color: var(--ink-soft);
+  letter-spacing: 0.12em;
 }
 .nav-links a:hover { color: var(--accent); }
 .nav-links a.is-active { color: var(--ink); }
@@ -124,7 +125,7 @@ img { max-width: 100%; display: block; }
   background: var(--ink);
   border-color: var(--ink);
 }
-/* 「灵感草稿」入口 · 与其它导航项同一水平线对齐,样式可在 Tweaks 里换
+/* 「灵感草稿」入口 · 与其它导航项同一水平线对齐
    用 inline-block + baseline,按钮内文字与左边各项文字对齐 */
 .nav-links a.nav-cta {
   display: inline-block; transition: all 0.22s ease; letter-spacing: 0.06em;
@@ -684,6 +685,36 @@ body.admin-mode .admin-panel { display: block; }
 }
 .admin-panel h3 { margin: 0 0 4px; font-size: 18px; }
 .admin-panel .admin-note { font-size: 13.5px; color: var(--ink-soft); margin: 0 0 22px; line-height: 1.8; }
+
+/* 发布栏 */
+.admin-publish { border: 1px solid var(--rule); background: var(--card); border-radius: 10px; padding: 16px 18px; margin: 0 0 26px; }
+.admin-publish .ap-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.admin-publish .ap-count { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; color: var(--muted); flex: 1; min-width: 140px; }
+.admin-publish .ap-count.has-changes { color: var(--accent); }
+.admin-publish #admin-publish-btn {
+  font-family: var(--font-serif); font-size: 14.5px; background: var(--accent); color: #fff;
+  border: none; padding: 8px 22px; border-radius: 999px; cursor: pointer;
+}
+.admin-publish #admin-publish-btn:hover:not(:disabled) { filter: brightness(0.92); }
+.admin-publish #admin-publish-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.admin-publish .ap-link {
+  font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.06em;
+  background: none; border: none; color: var(--ink-soft); cursor: pointer; text-decoration: underline;
+  text-underline-offset: 3px; padding: 4px;
+}
+.admin-publish .ap-link:hover { color: var(--accent); }
+.admin-publish .ap-token { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--rule); }
+.admin-publish .ap-hint { font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; margin: 0 0 10px; }
+.admin-publish .ap-token input {
+  flex: 1; min-width: 200px; font-family: var(--font-mono); font-size: 13px; padding: 9px 12px;
+  border: 1px solid var(--rule); background: var(--paper); color: var(--ink); outline: none;
+}
+.admin-publish .ap-token input:focus { border-color: var(--accent); }
+.admin-publish .ap-token button:not(.ap-link) {
+  font-family: var(--font-serif); font-size: 14px; background: var(--ink); color: var(--paper);
+  border: none; padding: 8px 18px; border-radius: 999px; cursor: pointer;
+}
+
 .admin-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
 .admin-form .full { grid-column: 1 / -1; }
 .admin-form label { display: grid; gap: 6px; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.12em; color: var(--ink-soft); text-transform: uppercase; }
@@ -718,6 +749,10 @@ body.admin-mode .admin-panel { display: block; }
 }
 .admin-row button:hover { border-color: var(--accent); color: var(--accent); }
 .admin-row.is-hidden { opacity: 0.45; }
+.admin-row.is-draft { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.admin-row.is-draft .ar-kind { color: var(--accent); }
+.admin-row.is-pending .ar-kind { color: var(--accent); }
+.admin-row.is-pending { opacity: 0.7; }
 
 /* ---------- responsive ---------- */
 @media (max-width: 880px) {
@@ -737,7 +772,7 @@ body.admin-mode .admin-panel { display: block; }
   section { padding: 56px 0; }
   .site-nav .wrap { gap: 12px; padding-top: 12px; padding-bottom: 12px; }
   .nav-links { gap: 10px 14px; justify-content: flex-end; }
-  .nav-links a { font-size: 12.5px; letter-spacing: 0.04em; }
+  .nav-links a { font-size: 11px; letter-spacing: 0.1em; }
   .nav-cta.cta-outline,
   .nav-cta.cta-soft { padding: 4px 12px; }
   .theme-toggle { font-size: 10.5px; letter-spacing: 0.1em; padding: 4px 10px; }
