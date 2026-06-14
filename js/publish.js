@@ -20,29 +20,66 @@
   }
   function setRepo(cfg) { localStorage.setItem(REPO_KEY, JSON.stringify(cfg || {})); }
 
-  // ---- GitHub REST 封装 ----
-  async function gh(path, method, body) {
+  function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+  // ---- GitHub REST 单次请求（带超时）----
+  async function ghOnce(path, method, body, timeoutMs) {
     const r = getRepo();
     const url = "https://api.github.com/repos/" + r.owner + "/" + r.repo + path;
-    const res = await fetch(url, {
-      method: method || "GET",
-      headers: {
-        "Authorization": "Bearer " + getToken(),
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28"
-      },
-      body: body ? JSON.stringify(body) : undefined
-    });
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs || 60000);
+    let res;
+    try {
+      res = await fetch(url, {
+        method: method || "GET",
+        headers: {
+          "Authorization": "Bearer " + getToken(),
+          "Accept": "application/vnd.github+json",
+          "X-GitHub-Api-Version": "2022-11-28"
+        },
+        body: body ? JSON.stringify(body) : undefined,
+        signal: ctrl.signal
+      });
+    } catch (e) {
+      // 网络中断 / 超时（abort）→ 可重试
+      const err = new Error(e && e.name === "AbortError" ? "上传超时（网络太慢或文件过大）" : "网络连接中断");
+      err.retryable = true;
+      throw err;
+    } finally {
+      clearTimeout(timer);
+    }
     if (!res.ok) {
       let msg = res.status + " " + res.statusText;
       try { const j = await res.json(); if (j.message) msg = j.message; } catch (e) {}
       if (res.status === 401) msg = "Token 无效或已过期(401)。请重新填写 Token。";
-      if (res.status === 403) msg = "权限不足(403)。请确认 Token 勾了这个仓库的 Contents: Read and write。";
-      if (res.status === 404) msg = "找不到仓库(404)。请确认仓库名和 Token 的仓库授权。";
-      throw new Error(msg);
+      else if (res.status === 403) msg = "权限不足(403)。请确认 Token 勾了这个仓库的 Contents: Read and write。";
+      else if (res.status === 404) msg = "找不到仓库(404)。请确认仓库名和 Token 的仓库授权。";
+      const err = new Error(msg);
+      // 5xx / 408 / 429 是服务端临时问题，可重试；4xx 权限类不重试
+      err.retryable = (res.status >= 500 || res.status === 408 || res.status === 429);
+      throw err;
     }
     if (res.status === 204) return null;
     return res.json();
+  }
+
+  // ---- GitHub REST 封装（失败自动重试）----
+  async function gh(path, method, body, opts) {
+    opts = opts || {};
+    const retries = opts.retries != null ? opts.retries : 2;
+    const timeoutMs = opts.timeout || 60000;
+    let lastErr;
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        return await ghOnce(path, method, body, timeoutMs);
+      } catch (e) {
+        lastErr = e;
+        if (!e.retryable || attempt === retries) throw e;
+        if (opts.onRetry) opts.onRetry(attempt + 1, retries);
+        await sleep(1500 * (attempt + 1));
+      }
+    }
+    throw lastErr;
   }
 
   // 测试 token 是否可用（读仓库基本信息）
@@ -122,13 +159,13 @@
       if (d.coverBlob) {
         const ext = extOf(d.coverBlob, "png");
         const path = "covers/" + base + "." + ext;
-        treeFiles.push({ path: path, base64: await fileToBase64(d.coverBlob) });
+        treeFiles.push({ path: path, base64: await fileToBase64(d.coverBlob), size: d.coverBlob.size || 0 });
         entry.cover = path;
       }
       if (d.audioBlob) {
         const ext = extOf(d.audioBlob, "mp3");
         const path = "audio/" + base + "." + ext;
-        treeFiles.push({ path: path, base64: await fileToBase64(d.audioBlob) });
+        treeFiles.push({ path: path, base64: await fileToBase64(d.audioBlob), size: d.audioBlob.size || 0 });
         entry.src = path;
       }
       newEntries.push(entry);
@@ -148,8 +185,16 @@
     let n = 0;
     for (const f of treeFiles) {
       n++;
-      step("上传文件 " + n + "/" + treeFiles.length + "…");
-      const blob = await gh("/git/blobs", "POST", { content: f.base64, encoding: "base64" });
+      const mb = (f.size / 1048576);
+      const sizeLabel = mb >= 0.1 ? "，" + mb.toFixed(1) + "MB" : "";
+      const label = "上传文件 " + n + "/" + treeFiles.length + sizeLabel;
+      step(label + "…");
+      // 大文件上传慢，给足超时；失败自动重试，并在界面提示「重试中」
+      const timeout = Math.max(60000, Math.ceil(mb) * 20000);  // 每 MB 给 20s，至少 60s
+      const blob = await gh("/git/blobs", "POST", { content: f.base64, encoding: "base64" }, {
+        retries: 3, timeout: timeout,
+        onRetry: (a, t) => step(label + " · 网络不稳，正在重试 " + a + "/" + t + "…")
+      });
       tree.push({ path: f.path, mode: "100644", type: "blob", sha: blob.sha });
     }
     // published.js 用内联文本,GitHub 自动建 blob
