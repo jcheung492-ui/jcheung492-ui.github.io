@@ -225,7 +225,24 @@
     });
   }
 
+  // 秘密入口:访问 .../#studio（或 #/studio）即解锁「管理」按钮，本机记住。
+  const UNLOCK_KEY = "bx-admin-unlocked";
+  function checkUnlock() {
+    const h = location.hash.replace(/^#\/?/, "").toLowerCase();
+    if (h === "studio") {
+      localStorage.setItem(UNLOCK_KEY, "1");
+      location.hash = "#/";   // 清掉秘密 hash，回首页
+    }
+    if (localStorage.getItem(UNLOCK_KEY) === "1") {
+      const btn = $("#admin-toggle");
+      if (btn) btn.hidden = false;
+    }
+  }
+
   function wire() {
+    checkUnlock();
+    window.addEventListener("hashchange", checkUnlock);
+
     $("#admin-toggle").addEventListener("click", () => {
       document.body.classList.toggle("admin-mode");
       if (document.body.classList.contains("admin-mode")) {
