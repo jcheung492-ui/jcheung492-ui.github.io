@@ -13,4 +13,25 @@ window.SITE_PUBLISHED = [
     "src": "audio/up-1781450578485-7909.mp3"
   }
 ];
-window.SITE_HIDDEN = [];
+window.SITE_HIDDEN = [
+  "builtin-sketch-subway",
+  "builtin-sketch-three-chords",
+  "builtin-sketch-late-cover",
+  "builtin-film-migrant",
+  "builtin-film-confession",
+  "builtin-last-summer",
+  "builtin-old-town",
+  "builtin-game-dusk",
+  "builtin-game-star",
+  "builtin-game-forest",
+  "builtin-pixel-dawn",
+  "builtin-ad-home",
+  "builtin-ad-run",
+  "builtin-ad-summer",
+  "builtin-late-bus-home",
+  "builtin-album-spring",
+  "builtin-album-tenyears",
+  "builtin-album-seaside",
+  "builtin-after-rain",
+  "builtin-morning-mist"
+];
