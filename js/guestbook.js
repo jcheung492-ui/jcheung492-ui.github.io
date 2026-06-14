@@ -21,9 +21,12 @@
   }
 
   function msgHtml(name, text, t) {
+    const nm = name || "无名的旅人";
+    const initial = ((nm.trim().charAt(0)) || "?").toUpperCase();
     return '<div class="gb-msg">' +
         '<div class="gb-msg-head">' +
-          '<span class="gb-msg-name">' + esc(name || "无名的旅人") + "</span>" +
+          '<span class="gb-avatar">' + esc(initial) + "</span>" +
+          '<span class="gb-msg-name">' + esc(nm) + "</span>" +
           '<span class="gb-msg-time">' + timeAgo(t) + "</span>" +
         "</div>" +
         '<p class="gb-msg-text">' + esc(text) + "</p>" +
