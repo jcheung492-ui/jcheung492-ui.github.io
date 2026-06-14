@@ -53,15 +53,17 @@
       box.innerHTML = '<p class="wc-empty">还没有评论。听完了的话，留一句吧。</p>';
       return;
     }
-    box.innerHTML = list.map((m) =>
-      '<div class="wc-msg">' +
+    box.innerHTML = list.map((m) => {
+      const initial = ((m.name || "?").trim().charAt(0) || "?").toUpperCase();
+      return '<div class="wc-msg">' +
         '<div class="wc-msg-head">' +
+          '<span class="wc-avatar">' + esc(initial) + "</span>" +
           '<span class="wc-msg-name">' + esc(m.name) + "</span>" +
           '<span class="wc-msg-time">' + timeAgo(m.t) + "</span>" +
         "</div>" +
         '<p class="wc-msg-text">' + esc(m.text) + "</p>" +
-      "</div>"
-    ).join("");
+      "</div>";
+    }).join("");
   }
 
   // 身份行
