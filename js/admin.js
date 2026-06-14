@@ -20,7 +20,8 @@
       return {
         chip: "草稿 · 未发布 · " + cat,
         cls: "is-draft",
-        btns: '<button data-act="del-draft" data-id="' + t.id + '">删除</button>'
+        btns: '<button data-act="edit-draft" data-id="' + t.id + '">编辑</button>' +
+              '<button data-act="del-draft" data-id="' + t.id + '">删除</button>'
       };
     }
     if (t.source === "published") {
@@ -79,6 +80,7 @@
     box.querySelectorAll("button").forEach((b) => {
       b.addEventListener("click", async () => {
         const id = b.dataset.id, act = b.dataset.act;
+        if (act === "edit-draft") { await startEdit(id); return; }
         if (act === "hide") window.musicLib.hideBuiltin(id);
         if (act === "unhide") window.musicLib.unhideBuiltin(id);
         if (act === "del-pub") {
@@ -190,6 +192,66 @@
     });
   }
 
+  // 当前正在编辑的草稿 id（null = 新增模式）
+  let editingId = null;
+
+  // 进入编辑：把草稿内容读回表单
+  async function startEdit(id) {
+    const rec = await window.musicLib.getOne(id);
+    if (!rec) { $("#admin-status").textContent = "草稿不存在（可能已删除）"; return; }
+    editingId = id;
+    $("#af-cat").value = rec.category || "album";
+    $("#af-title").value = rec.title || "";
+    $("#af-en").value = rec.en || "";
+    $("#af-year").value = rec.year || "";
+    $("#af-role").value = rec.role || "";
+    $("#af-desc").value = rec.desc || "";
+    $("#af-audio").value = "";   // 文件框无法预填，留空＝保留原文件
+    $("#af-cover").value = "";
+    syncAudioRequirement();
+    setEditMode(rec);
+    const form = $("#admin-form");
+    window.scrollTo({ top: form.getBoundingClientRect().top + window.scrollY - 90, behavior: "smooth" });
+  }
+
+  // 退出编辑，回到新增模式
+  function exitEdit() {
+    editingId = null;
+    const form = $("#admin-form");
+    form.reset();
+    syncAudioRequirement();
+    setEditMode(null);
+    $("#admin-status").textContent = "";
+  }
+
+  // 切换表单外观：编辑横幅 + 提交按钮文案
+  function setEditMode(rec) {
+    const form = $("#admin-form");
+    const submitBtn = form.querySelector('button[type="submit"]');
+    let banner = $("#af-editing");
+    if (rec) {
+      submitBtn.textContent = "保存修改";
+      if (!banner) {
+        banner = document.createElement("div");
+        banner.id = "af-editing";
+        banner.className = "af-editing";
+        form.insertBefore(banner, form.firstChild);
+      }
+      const keep = [];
+      if (rec.coverBlob) keep.push("封面");
+      if (rec.audioBlob) keep.push("音频");
+      const keepNote = keep.length ? ("原" + keep.join("、") + "不重新选就保留") : "";
+      banner.innerHTML =
+        '<span class="afe-label">正在编辑：<strong>' + esc(rec.title || "") + "</strong>" +
+        (keepNote ? '<em>' + keepNote + "</em>" : "") + "</span>" +
+        '<button type="button" id="af-cancel-edit">取消编辑</button>';
+      banner.querySelector("#af-cancel-edit").addEventListener("click", exitEdit);
+    } else {
+      submitBtn.textContent = "加入草稿";
+      if (banner) banner.remove();
+    }
+  }
+
   function wireForm() {
     $("#af-cat").addEventListener("change", syncAudioRequirement);
     syncAudioRequirement();
@@ -206,17 +268,33 @@
       const desc = $("#af-desc").value.trim();
       const audioFile = $("#af-audio").files[0];
       const coverFile = $("#af-cover").files[0];
+      const editing = editingId;
+
       if (!title) { status.textContent = "请填写作品标题"; return; }
-      if (category !== "sketch" && !coverFile) { status.textContent = "请上传封面(除随手录外每条作品都需要封面)"; return; }
-      if (category !== "film" && !audioFile) {
+      // 编辑时若没重新选文件，沿用草稿里原有的文件
+      const existing = editing ? await window.musicLib.getOne(editing) : null;
+      const willHaveCover = coverFile || (existing && existing.coverBlob);
+      const willHaveAudio = audioFile || (existing && existing.audioBlob);
+      if (category !== "sketch" && !willHaveCover) { status.textContent = "请上传封面(除随手录外每条作品都需要封面)"; return; }
+      if (category !== "film" && !willHaveAudio) {
         status.textContent = "这个分类需要音频文件;若只放封面,请把分类改成「电影」"; return;
       }
-      status.textContent = "正在保存草稿…";
+
+      status.textContent = editing ? "正在保存修改…" : "正在保存草稿…";
       try {
-        await window.musicLib.add({ category, title, en, year, role, desc, audioFile, coverFile });
-        form.reset();
-        syncAudioRequirement();
-        status.textContent = "已加入草稿 ✓ —— 确认后点上方「发布到线上」";
+        if (editing) {
+          await window.musicLib.update(editing, { category, title, en, year, role, desc, audioFile, coverFile });
+          editingId = null;
+          form.reset();
+          syncAudioRequirement();
+          setEditMode(null);
+          status.textContent = "已保存修改 ✓ —— 确认后点上方「发布到线上」";
+        } else {
+          await window.musicLib.add({ category, title, en, year, role, desc, audioFile, coverFile });
+          form.reset();
+          syncAudioRequirement();
+          status.textContent = "已加入草稿 ✓ —— 确认后点上方「发布到线上」";
+        }
         setTimeout(() => { status.textContent = ""; }, 4000);
         await refreshAll();
       } catch (err) {

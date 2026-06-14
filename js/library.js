@@ -153,6 +153,35 @@
       objectUrls.delete(id + ":cover");
     },
 
+    // 读取单条草稿原始记录（含 blob），编辑时用
+    async getOne(id) {
+      const all = await this.getCustom();
+      return all.find((r) => r.id === id) || null;
+    },
+
+    // 修改一条本地草稿；不传新文件则保留原封面/音频
+    async update(id, { category, title, en, year, role, desc, audioFile, coverFile }) {
+      const rec = await this.getOne(id);
+      if (!rec) throw new Error("草稿不存在（可能已删除）");
+      rec.category = category || rec.category || "album";
+      rec.title = title;
+      rec.en = en || "";
+      rec.year = year || "";
+      rec.role = role || "";
+      rec.desc = desc || "";
+      if (audioFile) rec.audioBlob = audioFile;
+      if (coverFile) rec.coverBlob = coverFile;
+      await tx("readwrite", (s) => s.put(rec));
+      // 失效旧的预览 URL，让新 blob 重新生成
+      const a = objectUrls.get(id + ":audio");
+      const c = objectUrls.get(id + ":cover");
+      if (a) URL.revokeObjectURL(a);
+      if (c) URL.revokeObjectURL(c);
+      objectUrls.delete(id + ":audio");
+      objectUrls.delete(id + ":cover");
+      return rec;
+    },
+
     // 下架默认作品（草稿）
     hideBuiltin(id) {
       removeFrom(UNHIDE_KEY, id);   // 取消可能存在的「恢复」草稿

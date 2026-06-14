@@ -747,12 +747,27 @@ body.admin-mode .admin-panel { display: block; }
 .admin-form select { cursor: pointer; }
 .admin-form label.is-optional .lbl { color: var(--muted); }
 .admin-form input[type="file"] { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); }
-.admin-form button {
+.admin-form button[type="submit"] {
   justify-self: start; font-family: var(--font-serif); font-size: 15px;
   background: var(--accent); color: #fff; border: none;
   padding: 10px 28px; border-radius: 999px; cursor: pointer;
 }
-.admin-form button:hover { filter: brightness(0.92); }
+.admin-form button[type="submit"]:hover { filter: brightness(0.92); }
+
+/* 编辑模式横幅 */
+.af-editing {
+  grid-column: 1 / -1; display: flex; align-items: center; gap: 14px;
+  flex-wrap: wrap; padding: 10px 14px; border-radius: 8px;
+  background: var(--accent-soft); font-size: 13.5px; color: var(--ink);
+}
+.af-editing .afe-label { display: inline-flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.af-editing .afe-label em { font-style: normal; font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 0.04em; }
+.af-editing #af-cancel-edit {
+  margin-left: auto; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em;
+  background: none; border: 1px solid var(--rule); color: var(--ink-soft);
+  padding: 5px 14px; border-radius: 999px; cursor: pointer;
+}
+.af-editing #af-cancel-edit:hover { border-color: var(--accent); color: var(--accent); }
 .admin-status { font-size: 13.5px; color: var(--accent); min-height: 1.5em; margin: 8px 0 0; }
 
 .admin-tracklist { margin-top: 26px; border-top: 1px solid var(--rule); }
