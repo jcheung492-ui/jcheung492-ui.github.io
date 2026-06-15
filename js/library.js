@@ -56,7 +56,7 @@
   const objectUrls = new Map();
 
   window.musicLib = {
-    // 所有本地草稿（IndexedDB）
+    // 所有本地草稿（IndexedDB）—— 含「新增草稿」与「已发布作品的修改草稿」
     async getCustom() {
       const db = await openDB();
       return new Promise((resolve, reject) => {
@@ -65,6 +65,15 @@
         req.onsuccess = () => resolve(req.result || []);
         req.onerror = () => reject(req.error);
       });
+    },
+
+    // 仅「新增草稿」（不含已发布作品的修改草稿）
+    async getNewDrafts() {
+      return (await this.getCustom()).filter((r) => !r.editOf);
+    },
+    // 仅「已发布作品的修改草稿」（带 editOf 指向被改的已发布 id）
+    async getPublishedEdits() {
+      return (await this.getCustom()).filter((r) => r.editOf);
     },
 
     // 合并后的完整曲库（含来源 / 草稿状态），给管理面板用
@@ -78,6 +87,8 @@
       const pubHidden = new Set(publishedHidden());
       const pendUnhide = new Set(getList(UNHIDE_KEY));
       const pendDelete = new Set(getList(DELETE_KEY));
+      const editList = await this.getPublishedEdits();
+      const editMap = new Map(editList.map((e) => [e.editOf, e]));
 
       const builtins = (window.SITE_TRACKS || []).map((t) => {
         const hiddenNow = (pubHidden.has(t.id) || localHidden.has(t.id)) && !pendUnhide.has(t.id);
@@ -89,12 +100,16 @@
         };
       });
 
-      const published = (window.SITE_PUBLISHED || []).map((t) => ({
-        ...t, source: "published", builtin: false, hidden: false,
-        pendingDelete: pendDelete.has(t.id)
-      }));
+      const published = (window.SITE_PUBLISHED || []).map((t) => {
+        const ed = editMap.get(t.id);
+        const view = ed ? this.editPreview(t, ed) : t;
+        return {
+          ...view, id: t.id, source: "published", builtin: false, hidden: false,
+          pendingDelete: pendDelete.has(t.id), pendingEdit: !!ed
+        };
+      });
 
-      const drafts = (await this.getCustom())
+      const drafts = (await this.getNewDrafts())
         .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
         .map((t) => this.toPlayable(t));
 
@@ -125,6 +140,22 @@
         src: objectUrls.get(rec.id + ":audio") || null,
         cover: objectUrls.get(rec.id + ":cover") || "covers/morning-mist.png",
         builtin: false
+      };
+    },
+
+    // 已发布作品 + 它的「修改草稿」-> 预览字段
+    //   新封面/音频用本地 blob 预览；没重新选就沿用线上原文件路径。
+    editPreview(t, ed) {
+      if (!objectUrls.has(ed.id + ":cover")) {
+        objectUrls.set(ed.id + ":audio", ed.audioBlob ? URL.createObjectURL(ed.audioBlob) : null);
+        objectUrls.set(ed.id + ":cover", ed.coverBlob ? URL.createObjectURL(ed.coverBlob) : null);
+      }
+      return {
+        category: ed.category || t.category || "album",
+        title: ed.title || "",
+        en: ed.en || "", year: ed.year || "", role: ed.role || "", desc: ed.desc || "",
+        cover: objectUrls.get(ed.id + ":cover") || t.cover || "covers/morning-mist.png",
+        src: objectUrls.get(ed.id + ":audio") || t.src || null
       };
     },
 
@@ -194,9 +225,33 @@
       if (publishedHidden().includes(id)) { addTo(UNHIDE_KEY, id); }
     },
 
-    // 删除已发布作品（草稿）/ 撤销删除
-    deletePublished(id) { addTo(DELETE_KEY, id); },
+    // 删除已发布作品（草稿）/ 撤销删除。删除与「修改」互斥：删除时撤掉未发布的修改草稿
+    async deletePublished(id) { addTo(DELETE_KEY, id); await this.cancelPublishedEdit(id); },
     undoDeletePublished(id) { removeFrom(DELETE_KEY, id); },
+
+    // 开始编辑一条已发布作品：建（或复用）一条带 editOf 的修改草稿，返回其 id
+    async startEditPublished(pub) {
+      const existing = (await this.getPublishedEdits()).find((r) => r.editOf === pub.id);
+      if (existing) return existing.id;
+      const rec = {
+        id: "edit-" + pub.id + "-" + Date.now(),
+        editOf: pub.id,
+        category: pub.category || "album",
+        title: pub.title || "", en: pub.en || "", year: pub.year || "",
+        role: pub.role || "", desc: pub.desc || "",
+        origCover: pub.cover || "", origSrc: pub.src || "",
+        audioBlob: null, coverBlob: null,
+        createdAt: Date.now()
+      };
+      await tx("readwrite", (s) => s.put(rec));
+      removeFrom(DELETE_KEY, pub.id);   // 编辑与删除互斥
+      return rec.id;
+    },
+    // 撤销对某条已发布作品的修改（删掉对应修改草稿）
+    async cancelPublishedEdit(pubId) {
+      const ed = (await this.getPublishedEdits()).find((r) => r.editOf === pubId);
+      if (ed) await this.remove(ed.id);
+    },
 
     // ---- 发布相关：给 publish.js 用 ----
     getLocalHidden()  { return getList(HIDDEN_KEY); },

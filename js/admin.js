@@ -31,9 +31,17 @@
           btns: '<button data-act="undo-del" data-id="' + t.id + '">撤销删除</button>'
         };
       }
+      if (t.pendingEdit) {
+        return {
+          chip: "已发布 · 待更新 · " + cat, cls: "is-pending",
+          btns: '<button data-act="edit-pub" data-id="' + t.id + '">继续编辑</button>' +
+                '<button data-act="cancel-edit-pub" data-id="' + t.id + '">撤销修改</button>'
+        };
+      }
       return {
         chip: "已发布 · " + cat, cls: "",
-        btns: '<button data-act="del-pub" data-id="' + t.id + '">删除</button>'
+        btns: '<button data-act="edit-pub" data-id="' + t.id + '">编辑</button>' +
+              '<button data-act="del-pub" data-id="' + t.id + '">删除</button>'
       };
     }
     // builtin
@@ -81,11 +89,19 @@
       b.addEventListener("click", async () => {
         const id = b.dataset.id, act = b.dataset.act;
         if (act === "edit-draft") { await startEdit(id); return; }
+        if (act === "edit-pub") { await startEditPublished(id); return; }
+        if (act === "cancel-edit-pub") {
+          if (!confirm("撤销对这条已发布作品的修改吗?(只丢弃未发布的改动,线上不变)")) return;
+          await window.musicLib.cancelPublishedEdit(id);
+          if (editingId) exitEdit();
+          await refreshAll();
+          return;
+        }
         if (act === "hide") window.musicLib.hideBuiltin(id);
         if (act === "unhide") window.musicLib.unhideBuiltin(id);
         if (act === "del-pub") {
           if (!confirm("把这条已发布作品标记为删除?(发布后才真正移除)")) return;
-          window.musicLib.deletePublished(id);
+          await window.musicLib.deletePublished(id);
         }
         if (act === "undo-del") window.musicLib.undoDeletePublished(id);
         if (act === "del-draft") {
@@ -183,6 +199,7 @@
         const res = await window.publisher.publish(step);
         status.textContent = "✓ 已发布!约 1 分钟后线上生效。" +
           (res.added ? ("新增 " + res.added + " 项。") : "") +
+          (res.edited ? ("更新 " + res.edited + " 项。") : "") +
           (res.removed ? ("移除 " + res.removed + " 项。") : "");
         await refreshAll();
       } catch (err) {
@@ -214,6 +231,15 @@
     window.scrollTo({ top: form.getBoundingClientRect().top + window.scrollY - 90, behavior: "smooth" });
   }
 
+  // 编辑一条「已发布」作品：建/复用修改草稿，再把它读回表单
+  async function startEditPublished(pubId) {
+    const pub = (window.SITE_PUBLISHED || []).find((t) => t.id === pubId);
+    if (!pub) { $("#admin-status").textContent = "作品不存在（可能已被删除）"; return; }
+    const editId = await window.musicLib.startEditPublished(pub);
+    await refreshAll();        // 让该行变成「待更新」
+    await startEdit(editId);   // 修改草稿和普通草稿一样能读回表单
+  }
+
   // 退出编辑，回到新增模式
   function exitEdit() {
     editingId = null;
@@ -238,11 +264,12 @@
         form.insertBefore(banner, form.firstChild);
       }
       const keep = [];
-      if (rec.coverBlob) keep.push("封面");
-      if (rec.audioBlob) keep.push("音频");
+      if (rec.coverBlob || rec.origCover) keep.push("封面");
+      if (rec.audioBlob || rec.origSrc) keep.push("音频");
       const keepNote = keep.length ? ("原" + keep.join("、") + "不重新选就保留") : "";
+      const tag = rec.editOf ? "（已发布作品）" : "";
       banner.innerHTML =
-        '<span class="afe-label">正在编辑：<strong>' + esc(rec.title || "") + "</strong>" +
+        '<span class="afe-label">正在编辑' + tag + "：<strong>" + esc(rec.title || "") + "</strong>" +
         (keepNote ? '<em>' + keepNote + "</em>" : "") + "</span>" +
         '<button type="button" id="af-cancel-edit">取消编辑</button>';
       banner.querySelector("#af-cancel-edit").addEventListener("click", exitEdit);
@@ -273,8 +300,8 @@
       if (!title) { status.textContent = "请填写作品标题"; return; }
       // 编辑时若没重新选文件，沿用草稿里原有的文件
       const existing = editing ? await window.musicLib.getOne(editing) : null;
-      const willHaveCover = coverFile || (existing && existing.coverBlob);
-      const willHaveAudio = audioFile || (existing && existing.audioBlob);
+      const willHaveCover = coverFile || (existing && (existing.coverBlob || existing.origCover));
+      const willHaveAudio = audioFile || (existing && (existing.audioBlob || existing.origSrc));
       if (category !== "sketch" && !willHaveCover) { status.textContent = "请上传封面(除随手录外每条作品都需要封面)"; return; }
       if (category !== "film" && !willHaveAudio) {
         status.textContent = "这个分类需要音频文件;若只放封面,请把分类改成「电影」"; return;

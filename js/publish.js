@@ -129,7 +129,8 @@
 
     // 1. 收集本地草稿状态
     step("读取本地改动…");
-    const drafts = await window.musicLib.getCustom();
+    const newDrafts = await window.musicLib.getNewDrafts();
+    const edits = await window.musicLib.getPublishedEdits();
     const localHidden = window.musicLib.getLocalHidden();
     const pendingUnhide = window.musicLib.getPendingUnhide();
     const pendingDelete = window.musicLib.getPendingDelete();
@@ -137,38 +138,56 @@
     const curPublished = Array.isArray(window.SITE_PUBLISHED) ? window.SITE_PUBLISHED : [];
     const curHidden = Array.isArray(window.SITE_HIDDEN) ? window.SITE_HIDDEN : [];
 
-    // 目标已发布列表 = 现有(去掉待删除) + 草稿转正
-    const keptPublished = curPublished.filter((t) => !pendingDelete.includes(t.id));
+    const editMap = new Map(edits.map((e) => [e.editOf, e]));
     // 目标下架集合 = (现有 ∪ 本地下架) − 待恢复
     const finalHidden = uniq(curHidden.concat(localHidden)).filter((id) => !pendingUnhide.includes(id));
 
-    const treeFiles = [];   // {path, base64}
+    const treeFiles = [];   // {path, base64, size}
     const newEntries = [];
 
-    // 2. 把草稿的封面/音频转成待提交文件
+    // 把一个本地 blob 收进「待提交文件」,返回它在仓库里的路径
+    async function blobToTree(blob, kind, base) {
+      const ext = extOf(blob, kind === "cover" ? "png" : "mp3");
+      const path = (kind === "cover" ? "covers/" : "audio/") + base + "." + ext;
+      treeFiles.push({ path: path, base64: await fileToBase64(blob), size: blob.size || 0 });
+      return path;
+    }
+
+    // 2a. 新增草稿：封面/音频转文件 + 生成新条目
     let i = 0;
-    for (const d of drafts) {
+    for (const d of newDrafts) {
       i++;
-      step("处理草稿 " + i + "/" + drafts.length + ":" + (d.title || ""));
+      step("处理草稿 " + i + "/" + newDrafts.length + "：" + (d.title || ""));
       const entry = {
         id: d.id, category: d.category || "album",
         title: d.title || "", en: d.en || "", year: d.year || "",
         role: d.role || "", desc: d.desc || ""
       };
       const base = d.id.replace(/^custom-/, "up-");
-      if (d.coverBlob) {
-        const ext = extOf(d.coverBlob, "png");
-        const path = "covers/" + base + "." + ext;
-        treeFiles.push({ path: path, base64: await fileToBase64(d.coverBlob), size: d.coverBlob.size || 0 });
-        entry.cover = path;
-      }
-      if (d.audioBlob) {
-        const ext = extOf(d.audioBlob, "mp3");
-        const path = "audio/" + base + "." + ext;
-        treeFiles.push({ path: path, base64: await fileToBase64(d.audioBlob), size: d.audioBlob.size || 0 });
-        entry.src = path;
-      }
+      if (d.coverBlob) entry.cover = await blobToTree(d.coverBlob, "cover", base);
+      if (d.audioBlob) entry.src = await blobToTree(d.audioBlob, "audio", base);
       newEntries.push(entry);
+    }
+
+    // 2b. 已发布作品：去掉待删除；有「修改草稿」的就地套用新内容（保持原 id）
+    const keptPublished = [];
+    let ei = 0;
+    for (const t of curPublished) {
+      if (pendingDelete.includes(t.id)) continue;
+      const ed = editMap.get(t.id);
+      if (!ed) { keptPublished.push(t); continue; }
+      ei++;
+      step("处理修改 " + ei + "：" + (ed.title || t.title || ""));
+      const entry = {
+        id: t.id, category: ed.category || t.category || "album",
+        title: ed.title || "", en: ed.en || "", year: ed.year || "",
+        role: ed.role || "", desc: ed.desc || "",
+        cover: t.cover, src: t.src   // 默认保留线上原文件
+      };
+      const base = ed.id.replace(/^edit-/, "up-edit-");
+      if (ed.coverBlob) entry.cover = await blobToTree(ed.coverBlob, "cover", base);
+      if (ed.audioBlob) entry.src = await blobToTree(ed.audioBlob, "audio", base);
+      keptPublished.push(entry);
     }
 
     const finalPublished = keptPublished.concat(newEntries);
@@ -204,6 +223,7 @@
     const newTree = await gh("/git/trees", "POST", { base_tree: baseTree, tree: tree });
     const msg = "内容更新:" +
       (newEntries.length ? ("+" + newEntries.length + " 作品 ") : "") +
+      (ei ? ("~" + ei + " 修改 ") : "") +
       (pendingDelete.length ? ("-" + pendingDelete.length + " 作品 ") : "") +
       "（管理面板发布）";
     const commit = await gh("/git/commits", "POST", {
@@ -217,7 +237,7 @@
     window.SITE_HIDDEN = finalHidden;
     await window.musicLib.clearLocalAfterPublish();
 
-    return { commit: commit.sha, added: newEntries.length, removed: pendingDelete.length };
+    return { commit: commit.sha, added: newEntries.length, edited: ei, removed: pendingDelete.length };
   }
 
   window.publisher = {
