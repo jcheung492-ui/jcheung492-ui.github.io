@@ -97,6 +97,154 @@
     });
   }
 
+  // ---- 光影图廊：行状态标签 + 操作按钮 ----
+  function galRowMeta(g) {
+    if (g.source === "draft") {
+      return {
+        chip: "草稿 · 未发布", cls: "is-draft",
+        btns: '<button data-gact="edit-draft" data-id="' + g.id + '">编辑</button>' +
+              '<button data-gact="del-draft" data-id="' + g.id + '">删除</button>'
+      };
+    }
+    if (g.source === "published") {
+      if (g.pendingDelete) {
+        return { chip: "待删除", cls: "is-pending",
+          btns: '<button data-gact="undo-del" data-id="' + g.id + '">撤销删除</button>' };
+      }
+      return { chip: "已发布", cls: "",
+        btns: '<button data-gact="del-pub" data-id="' + g.id + '">删除</button>' };
+    }
+    // builtin（data.js 里的默认 6 张）
+    if (g.pendingUnhide) {
+      return { chip: "默认 · 待恢复上架", cls: "is-pending",
+        btns: '<button data-gact="hide" data-id="' + g.id + '">撤销恢复</button>' };
+    }
+    if (g.pendingHide) {
+      return { chip: "默认 · 待下架", cls: "is-pending",
+        btns: '<button data-gact="unhide" data-id="' + g.id + '">撤销下架</button>' };
+    }
+    if (g.hidden) {
+      return { chip: "默认 · 已下架", cls: "is-hidden",
+        btns: '<button data-gact="unhide" data-id="' + g.id + '">恢复上架</button>' };
+    }
+    return { chip: "默认", cls: "",
+      btns: '<button data-gact="hide" data-id="' + g.id + '">下架</button>' };
+  }
+
+  async function renderGalleryList() {
+    const box = $("#admin-gallerylist");
+    if (!box || !window.galleryLib) return;
+    const all = await window.galleryLib.getAllWithHidden();
+    box.innerHTML = all.map((g) => {
+      const m = galRowMeta(g);
+      return (
+        '<div class="admin-row ' + m.cls + '">' +
+          '<img src="' + (g.src || "") + '" alt="">' +
+          '<span class="ar-title">' + esc(g.caption || "(无文字)") + "</span>" +
+          '<span class="ar-kind">' + esc(m.chip) + "</span>" +
+          m.btns +
+        "</div>"
+      );
+    }).join("");
+
+    box.querySelectorAll("button").forEach((b) => {
+      b.addEventListener("click", async () => {
+        const id = b.dataset.id, act = b.dataset.gact;
+        if (act === "edit-draft") { await startGalEdit(id); return; }
+        if (act === "hide") window.galleryLib.hideBuiltin(id);
+        if (act === "unhide") window.galleryLib.unhideBuiltin(id);
+        if (act === "del-pub") {
+          if (!confirm("把这张已发布的照片标记为删除?(发布后才真正移除)")) return;
+          window.galleryLib.deletePublished(id);
+        }
+        if (act === "undo-del") window.galleryLib.undoDeletePublished(id);
+        if (act === "del-draft") {
+          if (!confirm("删除这条本地照片草稿吗?")) return;
+          await window.galleryLib.remove(id);
+        }
+        await refreshAll();
+      });
+    });
+  }
+
+  // 当前正在编辑的照片草稿 id（null = 新增模式）
+  let editingGalId = null;
+
+  async function startGalEdit(id) {
+    const rec = await window.galleryLib.getOne(id);
+    if (!rec) { $("#gallery-status").textContent = "草稿不存在（可能已删除）"; return; }
+    editingGalId = id;
+    $("#gf-cap").value = rec.caption || "";
+    $("#gf-img").value = "";   // 留空＝保留原图
+    setGalEditMode(rec);
+    const form = $("#gallery-form");
+    window.scrollTo({ top: form.getBoundingClientRect().top + window.scrollY - 90, behavior: "smooth" });
+  }
+
+  function exitGalEdit() {
+    editingGalId = null;
+    $("#gallery-form").reset();
+    setGalEditMode(null);
+    $("#gallery-status").textContent = "";
+  }
+
+  function setGalEditMode(rec) {
+    const form = $("#gallery-form");
+    const submitBtn = form.querySelector('button[type="submit"]');
+    let banner = $("#gf-editing");
+    if (rec) {
+      submitBtn.textContent = "保存修改";
+      if (!banner) {
+        banner = document.createElement("div");
+        banner.id = "gf-editing";
+        banner.className = "af-editing";
+        form.insertBefore(banner, form.firstChild);
+      }
+      banner.innerHTML =
+        '<span class="afe-label">正在编辑这张照片' +
+        (rec.imgBlob ? '<em>不重新选图就保留原图</em>' : "") + "</span>" +
+        '<button type="button" id="gf-cancel-edit">取消编辑</button>';
+      banner.querySelector("#gf-cancel-edit").addEventListener("click", exitGalEdit);
+    } else {
+      submitBtn.textContent = "加入草稿";
+      if (banner) banner.remove();
+    }
+  }
+
+  function wireGalleryForm() {
+    const form = $("#gallery-form");
+    if (!form) return;
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const status = $("#gallery-status");
+      const caption = $("#gf-cap").value.trim();
+      const imgFile = $("#gf-img").files[0];
+      const editing = editingGalId;
+      const existing = editing ? await window.galleryLib.getOne(editing) : null;
+      const willHaveImg = imgFile || (existing && existing.imgBlob);
+      if (!willHaveImg) { status.textContent = "请先选择一张照片"; return; }
+
+      status.textContent = editing ? "正在保存修改…" : "正在保存草稿…";
+      try {
+        if (editing) {
+          await window.galleryLib.update(editing, { caption, imgFile });
+          editingGalId = null;
+          form.reset();
+          setGalEditMode(null);
+          status.textContent = "已保存修改 ✓ —— 确认后点上方「发布到线上」";
+        } else {
+          await window.galleryLib.add({ caption, imgFile });
+          form.reset();
+          status.textContent = "已加入草稿 ✓ —— 确认后点上方「发布到线上」";
+        }
+        setTimeout(() => { status.textContent = ""; }, 4000);
+        await refreshAll();
+      } catch (err) {
+        status.textContent = "保存失败:" + err.message;
+      }
+    });
+  }
+
   // 选电影分类时音频可选;随手录封面可选
   function syncAudioRequirement() {
     const cat = $("#af-cat").value;
@@ -124,10 +272,12 @@
     const btn = $("#admin-publish-btn");
     if (!countEl || !btn) return;
     const drafts = await window.musicLib.getCustom();
+    const galN = window.galleryLib ? await window.galleryLib.pendingCount() : 0;
     const n = drafts.length +
       window.musicLib.getLocalHidden().length +
       window.musicLib.getPendingUnhide().length +
-      window.musicLib.getPendingDelete().length;
+      window.musicLib.getPendingDelete().length +
+      galN;
     const hasToken = window.publisher.hasToken();
     countEl.textContent = n === 0 ? "没有未发布的改动" : ("有 " + n + " 项未发布的改动");
     countEl.classList.toggle("has-changes", n > 0);
@@ -137,8 +287,10 @@
 
   async function refreshAll() {
     await renderAdminList();
+    await renderGalleryList();
     await updatePublishUI();
     if (window.playerApp) await window.playerApp.refresh();
+    if (window.galleryApp) await window.galleryApp.render();
   }
 
   function wireToken() {
@@ -182,8 +334,10 @@
       try {
         const res = await window.publisher.publish(step);
         status.textContent = "✓ 已发布!约 1 分钟后线上生效。" +
-          (res.added ? ("新增 " + res.added + " 项。") : "") +
-          (res.removed ? ("移除 " + res.removed + " 项。") : "");
+          (res.added ? ("新增作品 " + res.added + " 项。") : "") +
+          (res.removed ? ("移除作品 " + res.removed + " 项。") : "") +
+          (res.galAdded ? ("新增照片 " + res.galAdded + " 张。") : "") +
+          (res.galRemoved ? ("移除照片 " + res.galRemoved + " 张。") : "");
         await refreshAll();
       } catch (err) {
         status.textContent = "✗ 发布失败:" + err.message;
@@ -334,6 +488,7 @@
     });
 
     wireForm();
+    wireGalleryForm();
     wireToken();
     wirePublish();
   }
