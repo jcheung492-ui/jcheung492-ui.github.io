@@ -241,6 +241,7 @@ img { max-width: 100%; display: block; }
 }
 .ph-portrait { aspect-ratio: 4 / 5; width: 100%; }
 .ph-about { aspect-ratio: 1 / 1; width: 100%; }
+.portrait-img { display: block; object-fit: cover; object-position: center 25%; }
 
 /* ---------- sections ---------- */
 section { padding: 76px 0; }
@@ -771,6 +772,8 @@ body.admin-mode .admin-panel { display: block; }
 .admin-status { font-size: 13.5px; color: var(--accent); min-height: 1.5em; margin: 8px 0 0; }
 
 .admin-tracklist { margin-top: 26px; border-top: 1px solid var(--rule); }
+.admin-gallery-section { margin-top: 40px; padding-top: 32px; border-top: 2px solid var(--rule); }
+.admin-gallery-section h3 { margin: 0 0 4px; font-size: 18px; }
 .admin-row {
   display: flex; align-items: center; gap: 14px;
   padding: 12px 0; border-bottom: 1px solid var(--rule); font-size: 14.5px;

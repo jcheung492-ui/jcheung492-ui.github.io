@@ -112,11 +112,14 @@
   }
 
   // 生成 published.js 文件内容
-  function buildPublishedJs(published, hidden) {
+  function buildPublishedJs(published, hidden, galPublished, galHidden) {
     return "// 此文件由「管理面板」自动生成,请勿手改。\n" +
-      "// 如需手动调整,改完保持 window.SITE_PUBLISHED / window.SITE_HIDDEN 两个变量即可。\n" +
+      "// 作品:window.SITE_PUBLISHED / window.SITE_HIDDEN\n" +
+      "// 光影:window.SITE_GALLERY_PUBLISHED / window.SITE_GALLERY_HIDDEN\n" +
       "window.SITE_PUBLISHED = " + JSON.stringify(published, null, 2) + ";\n" +
-      "window.SITE_HIDDEN = " + JSON.stringify(hidden, null, 2) + ";\n";
+      "window.SITE_HIDDEN = " + JSON.stringify(hidden, null, 2) + ";\n" +
+      "window.SITE_GALLERY_PUBLISHED = " + JSON.stringify(galPublished || [], null, 2) + ";\n" +
+      "window.SITE_GALLERY_HIDDEN = " + JSON.stringify(galHidden || [], null, 2) + ";\n";
   }
 
   function uniq(arr) { return Array.from(new Set(arr)); }
@@ -142,8 +145,20 @@
     // 目标下架集合 = (现有 ∪ 本地下架) − 待恢复
     const finalHidden = uniq(curHidden.concat(localHidden)).filter((id) => !pendingUnhide.includes(id));
 
+    // ---- 光影图廊：同样收集草稿 / 下架 / 删除 ----
+    const gallery = window.galleryLib;
+    const galDrafts = gallery ? await gallery.getCustom() : [];
+    const galLocalHidden = gallery ? gallery.getLocalHidden() : [];
+    const galPendingUnhide = gallery ? gallery.getPendingUnhide() : [];
+    const galPendingDelete = gallery ? gallery.getPendingDelete() : [];
+    const curGalPublished = Array.isArray(window.SITE_GALLERY_PUBLISHED) ? window.SITE_GALLERY_PUBLISHED : [];
+    const curGalHidden = Array.isArray(window.SITE_GALLERY_HIDDEN) ? window.SITE_GALLERY_HIDDEN : [];
+    const keptGalPublished = curGalPublished.filter((g) => !galPendingDelete.includes(g.id));
+    const finalGalHidden = uniq(curGalHidden.concat(galLocalHidden)).filter((id) => !galPendingUnhide.includes(id));
+
     const treeFiles = [];   // {path, base64, size}
     const newEntries = [];
+    const newGalEntries = [];
 
     // 把一个本地 blob 收进「待提交文件」,返回它在仓库里的路径
     async function blobToTree(blob, kind, base) {
@@ -190,8 +205,25 @@
       keptPublished.push(entry);
     }
 
+    // 2c. 光影草稿的图片转成待提交文件
+    let gi = 0;
+    for (const g of galDrafts) {
+      gi++;
+      step("处理照片 " + gi + "/" + galDrafts.length + "…");
+      const entry = { id: g.id, caption: g.caption || "" };
+      if (g.imgBlob) {
+        const ext = extOf(g.imgBlob, "jpg");
+        const base = g.id.replace(/^gcustom-/, "gup-");
+        const path = "gallery/" + base + "." + ext;
+        treeFiles.push({ path: path, base64: await fileToBase64(g.imgBlob), size: g.imgBlob.size || 0 });
+        entry.src = path;
+      }
+      newGalEntries.push(entry);
+    }
+
     const finalPublished = keptPublished.concat(newEntries);
-    const publishedJs = buildPublishedJs(finalPublished, finalHidden);
+    const finalGalPublished = keptGalPublished.concat(newGalEntries);
+    const publishedJs = buildPublishedJs(finalPublished, finalHidden, finalGalPublished, finalGalHidden);
 
     // 3. Git Data API:base ref -> blobs -> tree -> commit -> 移动 ref
     step("读取仓库当前状态…");
@@ -225,6 +257,8 @@
       (newEntries.length ? ("+" + newEntries.length + " 作品 ") : "") +
       (ei ? ("~" + ei + " 修改 ") : "") +
       (pendingDelete.length ? ("-" + pendingDelete.length + " 作品 ") : "") +
+      (newGalEntries.length ? ("+" + newGalEntries.length + " 照片 ") : "") +
+      (galPendingDelete.length ? ("-" + galPendingDelete.length + " 照片 ") : "") +
       "（管理面板发布）";
     const commit = await gh("/git/commits", "POST", {
       message: msg.trim(), tree: newTree.sha, parents: [baseSha]
@@ -235,9 +269,16 @@
     // 4. 同步内存 + 清空本地草稿
     window.SITE_PUBLISHED = finalPublished;
     window.SITE_HIDDEN = finalHidden;
+    window.SITE_GALLERY_PUBLISHED = finalGalPublished;
+    window.SITE_GALLERY_HIDDEN = finalGalHidden;
     await window.musicLib.clearLocalAfterPublish();
+    if (gallery) await gallery.clearLocalAfterPublish();
 
-    return { commit: commit.sha, added: newEntries.length, edited: ei, removed: pendingDelete.length };
+    return {
+      commit: commit.sha,
+      added: newEntries.length, edited: ei, removed: pendingDelete.length,
+      galAdded: newGalEntries.length, galRemoved: galPendingDelete.length
+    };
   }
 
   window.publisher = {

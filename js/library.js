@@ -13,16 +13,25 @@
 (function () {
   const DB_NAME = "bx-music";
   const STORE = "tracks";
+  const GAL_STORE = "gallery";               // 光影图廊的本地草稿
   const HIDDEN_KEY = "bx-hidden-builtins";   // 草稿:待下架的默认作品 id
   const UNHIDE_KEY = "bx-pending-unhide";    // 草稿:待恢复上架的(已发布下架的)默认作品 id
   const DELETE_KEY = "bx-pending-delete";    // 草稿:待删除的已发布作品 id
+  // 光影图廊用的同类 localStorage 键
+  const GAL_HIDDEN_KEY = "bx-gal-hidden";    // 草稿:待下架的默认照片 id
+  const GAL_UNHIDE_KEY = "bx-gal-unhide";    // 草稿:待恢复上架的(已发布下架的)默认照片 id
+  const GAL_DELETE_KEY = "bx-gal-delete";    // 草稿:待删除的已发布照片 id
 
   function openDB() {
     return new Promise((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, 1);
+      const req = indexedDB.open(DB_NAME, 2);
       req.onupgradeneeded = () => {
-        if (!req.result.objectStoreNames.contains(STORE)) {
-          req.result.createObjectStore(STORE, { keyPath: "id" });
+        const db = req.result;
+        if (!db.objectStoreNames.contains(STORE)) {
+          db.createObjectStore(STORE, { keyPath: "id" });
+        }
+        if (!db.objectStoreNames.contains(GAL_STORE)) {
+          db.createObjectStore(GAL_STORE, { keyPath: "id" });
         }
       };
       req.onsuccess = () => resolve(req.result);
@@ -30,16 +39,17 @@
     });
   }
 
-  async function tx(mode, fn) {
+  async function txOn(storeName, mode, fn) {
     const db = await openDB();
     return new Promise((resolve, reject) => {
-      const t = db.transaction(STORE, mode);
-      const store = t.objectStore(STORE);
+      const t = db.transaction(storeName, mode);
+      const store = t.objectStore(storeName);
       const out = fn(store);
       t.oncomplete = () => resolve(out && out.result !== undefined ? out.result : undefined);
       t.onerror = () => reject(t.error);
     });
   }
+  function tx(mode, fn) { return txOn(STORE, mode, fn); }
 
   function getList(key) {
     try { return JSON.parse(localStorage.getItem(key) || "[]"); }
@@ -274,6 +284,153 @@
       setList(HIDDEN_KEY, []);
       setList(UNHIDE_KEY, []);
       setList(DELETE_KEY, []);
+    }
+  };
+
+  // ============================================================
+  // 光影图廊 galleryLib —— 与 musicLib 同构，专管「光影」里的照片
+  //   1) 默认占位  window.SITE_GALLERY            (js/data.js,手写;可「下架」)
+  //   2) 已发布    window.SITE_GALLERY_PUBLISHED  (js/published.js,面板维护;图片在仓库里)
+  //   3) 本地草稿  IndexedDB(gallery 存储区)       (面板暂存、尚未发布,只本机可见)
+  // ============================================================
+  function galHidden() {
+    return Array.isArray(window.SITE_GALLERY_HIDDEN) ? window.SITE_GALLERY_HIDDEN : [];
+  }
+  const galUrls = new Map();
+
+  window.galleryLib = {
+    // 所有本地草稿照片（IndexedDB）
+    async getCustom() {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const t = db.transaction(GAL_STORE, "readonly");
+        const req = t.objectStore(GAL_STORE).getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      });
+    },
+
+    // 合并后的完整照片库（含来源 / 草稿状态），给管理面板用
+    async getAllWithHidden() {
+      const localHidden = new Set(getList(GAL_HIDDEN_KEY));
+      const pubHidden = new Set(galHidden());
+      const pendUnhide = new Set(getList(GAL_UNHIDE_KEY));
+      const pendDelete = new Set(getList(GAL_DELETE_KEY));
+
+      const builtins = (window.SITE_GALLERY || []).map((g) => {
+        const hiddenNow = (pubHidden.has(g.id) || localHidden.has(g.id)) && !pendUnhide.has(g.id);
+        return {
+          ...g, source: "builtin",
+          hidden: hiddenNow,
+          pendingHide: localHidden.has(g.id) && !pubHidden.has(g.id),
+          pendingUnhide: pendUnhide.has(g.id)
+        };
+      });
+
+      const published = (window.SITE_GALLERY_PUBLISHED || []).map((g) => ({
+        ...g, source: "published", hidden: false,
+        pendingDelete: pendDelete.has(g.id)
+      }));
+
+      const drafts = (await this.getCustom())
+        .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
+        .map((g) => this.toDisplay(g));
+
+      return builtins.concat(published, drafts);
+    },
+
+    // 当前展示中的照片（光影区用）：默认(未下架) + 已发布(未待删) + 本地草稿
+    async getVisible() {
+      const all = await this.getAllWithHidden();
+      return all.filter((g) => !g.hidden && !g.pendingDelete);
+    },
+
+    // IndexedDB 草稿记录 -> 可显示对象（blob 转 URL）
+    toDisplay(rec) {
+      if (!galUrls.has(rec.id)) {
+        galUrls.set(rec.id, rec.imgBlob ? URL.createObjectURL(rec.imgBlob) : null);
+      }
+      return {
+        id: rec.id,
+        source: "draft",
+        caption: rec.caption || "",
+        src: galUrls.get(rec.id) || ""
+      };
+    },
+
+    // 新增一条照片草稿（尚未发布）
+    async add({ caption, imgFile }) {
+      const rec = {
+        id: "gcustom-" + Date.now() + "-" + Math.floor(Math.random() * 1e4),
+        caption: caption || "",
+        imgBlob: imgFile || null,
+        createdAt: Date.now()
+      };
+      await txOn(GAL_STORE, "readwrite", (s) => s.put(rec));
+      return rec;
+    },
+
+    async remove(id) {
+      await txOn(GAL_STORE, "readwrite", (s) => s.delete(id));
+      const u = galUrls.get(id);
+      if (u) URL.revokeObjectURL(u);
+      galUrls.delete(id);
+    },
+
+    async getOne(id) {
+      const all = await this.getCustom();
+      return all.find((r) => r.id === id) || null;
+    },
+
+    // 修改一条照片草稿；不传新图则保留原图
+    async update(id, { caption, imgFile }) {
+      const rec = await this.getOne(id);
+      if (!rec) throw new Error("草稿不存在（可能已删除）");
+      rec.caption = caption || "";
+      if (imgFile) rec.imgBlob = imgFile;
+      await txOn(GAL_STORE, "readwrite", (s) => s.put(rec));
+      const u = galUrls.get(id);
+      if (u) URL.revokeObjectURL(u);
+      galUrls.delete(id);
+      return rec;
+    },
+
+    hideBuiltin(id) { removeFrom(GAL_UNHIDE_KEY, id); addTo(GAL_HIDDEN_KEY, id); },
+    unhideBuiltin(id) {
+      const localHidden = getList(GAL_HIDDEN_KEY);
+      if (localHidden.includes(id)) { removeFrom(GAL_HIDDEN_KEY, id); return; }
+      if (galHidden().includes(id)) { addTo(GAL_UNHIDE_KEY, id); }
+    },
+    deletePublished(id) { addTo(GAL_DELETE_KEY, id); },
+    undoDeletePublished(id) { removeFrom(GAL_DELETE_KEY, id); },
+
+    getLocalHidden()  { return getList(GAL_HIDDEN_KEY); },
+    getPendingUnhide() { return getList(GAL_UNHIDE_KEY); },
+    getPendingDelete() { return getList(GAL_DELETE_KEY); },
+
+    async hasLocalChanges() {
+      const drafts = await this.getCustom();
+      return drafts.length > 0 ||
+        getList(GAL_HIDDEN_KEY).length > 0 ||
+        getList(GAL_UNHIDE_KEY).length > 0 ||
+        getList(GAL_DELETE_KEY).length > 0;
+    },
+
+    // 未发布的本地照片改动数量（给发布栏计数用）
+    async pendingCount() {
+      const drafts = await this.getCustom();
+      return drafts.length +
+        getList(GAL_HIDDEN_KEY).length +
+        getList(GAL_UNHIDE_KEY).length +
+        getList(GAL_DELETE_KEY).length;
+    },
+
+    async clearLocalAfterPublish() {
+      const drafts = await this.getCustom();
+      for (const d of drafts) await this.remove(d.id);
+      setList(GAL_HIDDEN_KEY, []);
+      setList(GAL_UNHIDE_KEY, []);
+      setList(GAL_DELETE_KEY, []);
     }
   };
 })();

@@ -10,7 +10,8 @@
     return d.innerHTML;
   }
 
-  const items = () => window.SITE_GALLERY || [];
+  let LIST = [];                       // 当前展示的照片（render 时刷新，灯箱共用）
+  const items = () => LIST;
   let cur = -1;
   let box, boxImg, boxCap, boxIdx;
 
@@ -67,12 +68,18 @@
     open((cur + d + list.length) % list.length);
   }
 
-  function render() {
+  async function render() {
     const grid = document.getElementById("gallery-grid");
     if (!grid) return;
-    const list = items();
+    // 合并「默认 + 已发布 + 本地草稿」；没有 galleryLib 时退回默认占位
+    try {
+      LIST = window.galleryLib ? await window.galleryLib.getVisible() : (window.SITE_GALLERY || []);
+    } catch (e) {
+      LIST = window.SITE_GALLERY || [];
+    }
+    const list = LIST;
     if (!list.length) {
-      grid.innerHTML = '<p class="gallery-empty">还没有照片 —— 在 js/data.js 的 SITE_GALLERY 里添加。</p>';
+      grid.innerHTML = '<p class="gallery-empty">还没有照片 —— 进入管理面板「光影图廊」上传。</p>';
       return;
     }
     grid.innerHTML = list.map((it, i) =>
