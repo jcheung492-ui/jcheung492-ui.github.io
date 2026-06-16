@@ -369,6 +369,61 @@ section + section { border-top: 1px solid var(--rule); }
 .work-item:hover .work-play svg { fill: #fff; }
 .work-item.is-current .work-play { background: var(--accent); border-color: var(--accent); }
 .work-item.is-current .work-play svg { fill: #fff; margin-left: 0; }
+
+/* 广告 / 游戏：视频呈现（封面海报 → 点开站内内嵌 / 跳转外站） */
+.work-videohost { position: absolute; inset: 0; cursor: pointer; }
+.work-videohost > img { width: 100%; height: 100%; object-fit: cover; }
+.work-videoplay {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 52px; height: 52px; border-radius: 50%; padding: 0; cursor: pointer;
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  border: 1px solid var(--rule); display: grid; place-items: center;
+  transition: all 0.25s ease;
+}
+.work-videoplay svg { width: 16px; height: 16px; fill: var(--ink); margin-left: 2px; }
+.work-item:hover .work-videoplay { background: var(--accent); border-color: var(--accent); }
+.work-item:hover .work-videoplay svg { fill: #fff; }
+.work-videobadge {
+  position: absolute; left: 8px; bottom: 8px;
+  font-size: 11px; line-height: 1; color: #fff;
+  background: rgba(0, 0, 0, .55); padding: 3px 8px; border-radius: 10px;
+}
+.work-videolink {
+  position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%);
+  font-size: 13px; color: #fff; text-decoration: none; white-space: nowrap;
+  background: rgba(0, 0, 0, .62); padding: 7px 14px; border-radius: 20px;
+  transition: background 0.2s ease;
+}
+.work-videolink:hover { background: var(--accent); }
+
+/* 视频灯箱：点海报弹出的适中大窗（暗背景 + 模糊，沿用图廊灯箱观感） */
+.vlightbox {
+  position: fixed; inset: 0; z-index: 130;
+  background: color-mix(in srgb, var(--ink) 88%, transparent);
+  display: grid; place-items: center; padding: 5vh 6vw;
+  backdrop-filter: blur(3px);
+}
+.vlightbox[hidden] { display: none; }
+.vlb-frame { width: min(800px, 92vw); display: grid; gap: 14px; }
+.vlb-stage {
+  position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: 76vh;
+  background: #000; border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.vlb-stage iframe, .vlb-stage video {
+  position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block;
+}
+.vlb-cap { display: flex; align-items: baseline; gap: 12px; color: rgba(255, 255, 255, 0.9); }
+.vlb-title { font-family: var(--font-serif); font-size: 16px; }
+.vlb-plat {
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.55);
+}
+.vlb-close {
+  position: fixed; top: 22px; right: 26px; font-size: 24px;
+  background: none; border: none; cursor: pointer;
+  color: rgba(255, 255, 255, 0.7); transition: color 0.2s ease;
+}
+.vlb-close:hover { color: #fff; }
 .work-filmtag {
   position: absolute; left: 12px; bottom: 12px;
   font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em;

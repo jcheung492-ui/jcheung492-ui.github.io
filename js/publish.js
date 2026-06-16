@@ -162,8 +162,10 @@
 
     // 把一个本地 blob 收进「待提交文件」,返回它在仓库里的路径
     async function blobToTree(blob, kind, base) {
-      const ext = extOf(blob, kind === "cover" ? "png" : "mp3");
-      const path = (kind === "cover" ? "covers/" : "audio/") + base + "." + ext;
+      const folder = kind === "cover" ? "covers/" : kind === "video" ? "videos/" : "audio/";
+      const def = kind === "cover" ? "png" : kind === "video" ? "mp4" : "mp3";
+      const ext = extOf(blob, def);
+      const path = folder + base + "." + ext;
       treeFiles.push({ path: path, base64: await fileToBase64(blob), size: blob.size || 0 });
       return path;
     }
@@ -181,6 +183,8 @@
       const base = d.id.replace(/^custom-/, "up-");
       if (d.coverBlob) entry.cover = await blobToTree(d.coverBlob, "cover", base);
       if (d.audioBlob) entry.src = await blobToTree(d.audioBlob, "audio", base);
+      if (d.videoBlob) entry.video = await blobToTree(d.videoBlob, "video", base);
+      else if (d.videoUrl) entry.video = d.videoUrl;
       newEntries.push(entry);
     }
 
@@ -202,6 +206,11 @@
       const base = ed.id.replace(/^edit-/, "up-edit-");
       if (ed.coverBlob) entry.cover = await blobToTree(ed.coverBlob, "cover", base);
       if (ed.audioBlob) entry.src = await blobToTree(ed.audioBlob, "audio", base);
+      // 视频：传了新文件→上传；填了新链接→用链接；都没动→保留线上原视频
+      let video = t.video || "";
+      if (ed.videoBlob) video = await blobToTree(ed.videoBlob, "video", base);
+      else if (ed.videoUrl) video = ed.videoUrl;
+      if (video) entry.video = video;
       keptPublished.push(entry);
     }
 

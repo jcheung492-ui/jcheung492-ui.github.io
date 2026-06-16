@@ -31,21 +31,115 @@
     return [t.year, t.role].filter(Boolean).join(" · ");
   }
 
+  // 解析视频来源：本地文件 / B站·YouTube 内嵌 / 其余平台跳转
+  //   返回 null 表示这条作品没有视频
+  function parseVideo(v) {
+    if (!v) return null;
+    const s = String(v).trim();
+    if (!s) return null;
+    // 不是 http(s) 链接 → 当作本地文件/blob，用 <video> 播
+    if (!/^https?:\/\//i.test(s)) return { kind: "file", src: s, platform: "本地视频" };
+    let m = s.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{11})/i);
+    if (m) return { kind: "embed", platform: "YouTube", embed: "https://www.youtube.com/embed/" + m[1] };
+    m = s.match(/bilibili\.com\/video\/(BV[0-9A-Za-z]+)/i);
+    if (m) return { kind: "embed", platform: "B站", embed: "https://player.bilibili.com/player.html?bvid=" + m[1] + "&page=1&high_quality=1&danmaku=0&autoplay=0" };
+    m = s.match(/bilibili\.com\/video\/av(\d+)/i);
+    if (m) return { kind: "embed", platform: "B站", embed: "https://player.bilibili.com/player.html?aid=" + m[1] + "&page=1&high_quality=1&danmaku=0&autoplay=0" };
+    let platform = "站外视频";
+    if (/xiaohongshu\.com|xhslink\.com/i.test(s)) platform = "小红书";
+    else if (/douyin\.com|iesdouyin\.com/i.test(s)) platform = "抖音";
+    else if (/weixin\.qq\.com|channels\.weixin|\/finder/i.test(s)) platform = "视频号";
+    return { kind: "link", platform: platform, href: s };
+  }
+
+  // 作品封面区内容：有视频时显示视频海报（点开内嵌或跳转），否则维持原音频/海报
+  function coverInner(t, pv, playable, playing) {
+    const img = '<img src="' + t.cover + '" alt="' + esc(t.title) + ' 封面" loading="lazy">';
+    if (pv) {
+      if (pv.kind === "link") {
+        return img +
+          '<a class="work-videolink" href="' + esc(pv.href) + '" target="_blank" rel="noopener noreferrer">▶ 前往' + esc(pv.platform) + '观看</a>';
+      }
+      const dataAttr = (pv.kind === "embed"
+        ? ' data-embed="' + esc(pv.embed) + '"'
+        : ' data-file="' + esc(pv.src) + '"') +
+        ' data-title="' + esc(t.title) + '"' +
+        (pv.platform ? ' data-platform="' + esc(pv.platform) + '"' : "");
+      return '<div class="work-videohost"' + dataAttr + '>' + img +
+        '<button class="work-videoplay" type="button" aria-label="播放视频">' + ICON_PLAY + '</button>' +
+        (pv.platform ? '<span class="work-videobadge">' + esc(pv.platform) + '</span>' : '') +
+        '</div>';
+    }
+    if (playable) {
+      return img + '<button class="work-play" type="button" aria-label="播放">' +
+        (playing ? ICON_PAUSE : ICON_PLAY) + '</button>';
+    }
+    return img + '<span class="work-filmtag">封面 / Poster</span>';
+  }
+
+  // ---- 视频灯箱：点海报弹出大窗播放（暗背景 + 模糊，复用图廊灯箱观感）----
+  let vbox, vstage;
+  function buildVideoModal() {
+    vbox = document.createElement("div");
+    vbox.className = "vlightbox";
+    vbox.id = "video-lightbox";
+    vbox.hidden = true;
+    vbox.innerHTML =
+      '<button class="vlb-close" type="button" aria-label="关闭">✕</button>' +
+      '<div class="vlb-frame">' +
+        '<div class="vlb-stage" id="vlb-stage"></div>' +
+        '<div class="vlb-cap">' +
+          '<span class="vlb-title" id="vlb-title"></span>' +
+          '<span class="vlb-plat" id="vlb-plat"></span>' +
+        "</div>" +
+      "</div>";
+    document.body.appendChild(vbox);
+    vstage = vbox.querySelector("#vlb-stage");
+    vbox.querySelector(".vlb-close").addEventListener("click", closeVideoModal);
+    vbox.addEventListener("click", (e) => { if (e.target === vbox) closeVideoModal(); });
+    document.addEventListener("keydown", (e) => {
+      if (!vbox.hidden && e.key === "Escape") closeVideoModal();
+    });
+  }
+
+  function openVideoModal(opts) {
+    if (!vbox) buildVideoModal();
+    audio.pause();   // 别和音频试听抢着出声
+    let media = "";
+    if (opts.embed) {
+      const sep = opts.embed.indexOf("?") >= 0 ? "&" : "?";
+      media = '<iframe src="' + opts.embed + sep + 'autoplay=1" ' +
+        'allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen scrolling="no" frameborder="0"></iframe>';
+    } else if (opts.file) {
+      media = '<video src="' + opts.file + '" controls autoplay playsinline></video>';
+    }
+    vstage.innerHTML = media;
+    vbox.querySelector("#vlb-title").textContent = opts.title || "";
+    vbox.querySelector("#vlb-plat").textContent = opts.platform || "";
+    vbox.hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeVideoModal() {
+    if (!vbox) return;
+    vstage.innerHTML = "";   // 销毁 iframe/video，立即停止播放与声音
+    vbox.hidden = true;
+    document.body.style.overflow = "";
+  }
+
   // 一条「作品」—— 封面 + 文字介绍;可听的带播放按钮;专辑带评论区
   function workItem(t, qi) {
     const playable = qi >= 0;
+    const pv = parseVideo(t.video);
     const current = playable && qi === index;
     const playing = current && !audio.paused;
+    const hasMedia = playable || !!pv;
     return (
       '<article class="work-item' + (current ? " is-current" : "") + '"' +
         ' data-id="' + esc(t.id) + '"' +
         (playable ? ' data-i="' + qi + '"' : "") + '>' +
-        '<div class="work-cover">' +
-          '<img src="' + t.cover + '" alt="' + esc(t.title) + ' 封面" loading="lazy">' +
-          (playable
-            ? '<button class="work-play" type="button" aria-label="播放">' +
-                (playing ? ICON_PAUSE : ICON_PLAY) + "</button>"
-            : '<span class="work-filmtag">封面 / Poster</span>') +
+        '<div class="work-cover' + (pv ? " has-video" : "") + '">' +
+          coverInner(t, pv, playable, playing) +
         "</div>" +
         '<div class="work-body">' +
           (t.en ? '<p class="work-en">' + esc(t.en) + "</p>" : "") +
@@ -57,8 +151,8 @@
             ? '<button class="work-listen" type="button" data-i="' + qi + '">' +
                 (playing ? "正在播放" : "▶ 试听") + "</button>"
             : "") +
-          // 可听作品(专辑/广告/游戏)每首旁边的评论区
-          (playable
+          // 可听 / 有视频的作品旁边的评论区
+          (hasMedia
             ? '<div class="work-comments" data-track="' + esc(t.id) + '"></div>'
             : "") +
         "</div>" +
@@ -82,6 +176,17 @@
         e.stopPropagation();
         const i = Number(b.dataset.i ?? b.closest(".work-item").dataset.i);
         if (i === index) toggle(); else playAt(i);
+      });
+    });
+    host.querySelectorAll(".work-videohost").forEach((vh) => {
+      vh.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openVideoModal({
+          embed: vh.getAttribute("data-embed") || "",
+          file: vh.getAttribute("data-file") || "",
+          title: vh.getAttribute("data-title") || "",
+          platform: vh.getAttribute("data-platform") || ""
+        });
       });
     });
     if (window.commentsApp) window.commentsApp.mountAll();

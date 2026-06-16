@@ -266,9 +266,18 @@
     const cat = $("#af-cat").value;
     const audioLabel = $("#af-audio-label");
     const coverLabel = $("#af-cover-label");
+    const isVideoCat = (cat === "ad" || cat === "game");
+    // 视频字段：仅广告/游戏显示
+    const vLabel = $("#af-video-label"), vfLabel = $("#af-videofile-label");
+    if (vLabel) vLabel.hidden = !isVideoCat;
+    if (vfLabel) vfLabel.hidden = !isVideoCat;
+    // 音频：电影、广告、游戏都改为「可不填」（广告/游戏以视频为主）
     if (cat === "film") {
       audioLabel.classList.add("is-optional");
       audioLabel.querySelector(".lbl").textContent = "音频文件(电影类可不填)";
+    } else if (isVideoCat) {
+      audioLabel.classList.add("is-optional");
+      audioLabel.querySelector(".lbl").textContent = "音频文件(广告/游戏可不填，视频为主)";
     } else {
       audioLabel.classList.remove("is-optional");
       audioLabel.querySelector(".lbl").textContent = "音频文件 (mp3 / wav / m4a)";
@@ -379,6 +388,8 @@
     $("#af-desc").value = rec.desc || "";
     $("#af-audio").value = "";   // 文件框无法预填，留空＝保留原文件
     $("#af-cover").value = "";
+    if ($("#af-video")) $("#af-video").value = rec.videoUrl || "";
+    if ($("#af-videofile")) $("#af-videofile").value = "";
     syncAudioRequirement();
     setEditMode(rec);
     const form = $("#admin-form");
@@ -420,6 +431,7 @@
       const keep = [];
       if (rec.coverBlob || rec.origCover) keep.push("封面");
       if (rec.audioBlob || rec.origSrc) keep.push("音频");
+      if (rec.videoBlob || rec.videoUrl || rec.origVideo) keep.push("视频");
       const keepNote = keep.length ? ("原" + keep.join("、") + "不重新选就保留") : "";
       const tag = rec.editOf ? "（已发布作品）" : "";
       banner.innerHTML =
@@ -449,29 +461,38 @@
       const desc = $("#af-desc").value.trim();
       const audioFile = $("#af-audio").files[0];
       const coverFile = $("#af-cover").files[0];
+      const videoUrl = $("#af-video") ? $("#af-video").value.trim() : "";
+      const videoFile = $("#af-videofile") ? $("#af-videofile").files[0] : null;
       const editing = editingId;
+      const isVideoCat = (category === "ad" || category === "game");
 
       if (!title) { status.textContent = "请填写作品标题"; return; }
       // 编辑时若没重新选文件，沿用草稿里原有的文件
       const existing = editing ? await window.musicLib.getOne(editing) : null;
       const willHaveCover = coverFile || (existing && (existing.coverBlob || existing.origCover));
       const willHaveAudio = audioFile || (existing && (existing.audioBlob || existing.origSrc));
+      const willHaveVideo = videoUrl || videoFile ||
+        (existing && (existing.videoBlob || existing.videoUrl || existing.origVideo));
       if (category !== "sketch" && !willHaveCover) { status.textContent = "请上传封面(除随手录外每条作品都需要封面)"; return; }
-      if (category !== "film" && !willHaveAudio) {
-        status.textContent = "这个分类需要音频文件;若只放封面,请把分类改成「电影」"; return;
+      if (category === "album" || category === "sketch") {
+        if (!willHaveAudio) { status.textContent = "这个分类需要音频文件;若只放封面,请把分类改成「电影」"; return; }
+      } else if (isVideoCat) {
+        if (!willHaveVideo && !willHaveAudio) {
+          status.textContent = "广告/游戏请至少填一项:视频链接、上传视频、或音频文件"; return;
+        }
       }
 
       status.textContent = editing ? "正在保存修改…" : "正在保存草稿…";
       try {
         if (editing) {
-          await window.musicLib.update(editing, { category, title, en, year, role, desc, audioFile, coverFile });
+          await window.musicLib.update(editing, { category, title, en, year, role, desc, audioFile, coverFile, videoUrl, videoFile });
           editingId = null;
           form.reset();
           syncAudioRequirement();
           setEditMode(null);
           status.textContent = "已保存修改 ✓ —— 确认后点上方「发布到线上」";
         } else {
-          await window.musicLib.add({ category, title, en, year, role, desc, audioFile, coverFile });
+          await window.musicLib.add({ category, title, en, year, role, desc, audioFile, coverFile, videoUrl, videoFile });
           form.reset();
           syncAudioRequirement();
           status.textContent = "已加入草稿 ✓ —— 确认后点上方「发布到线上」";

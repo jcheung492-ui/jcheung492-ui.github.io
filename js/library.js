@@ -137,6 +137,7 @@
       if (!objectUrls.has(rec.id + ":cover")) {
         objectUrls.set(rec.id + ":audio", rec.audioBlob ? URL.createObjectURL(rec.audioBlob) : null);
         objectUrls.set(rec.id + ":cover", rec.coverBlob ? URL.createObjectURL(rec.coverBlob) : null);
+        objectUrls.set(rec.id + ":video", rec.videoBlob ? URL.createObjectURL(rec.videoBlob) : null);
       }
       return {
         id: rec.id,
@@ -149,6 +150,7 @@
         desc: rec.desc || "",
         src: objectUrls.get(rec.id + ":audio") || null,
         cover: objectUrls.get(rec.id + ":cover") || "covers/morning-mist.png",
+        video: objectUrls.get(rec.id + ":video") || rec.videoUrl || null,
         builtin: false
       };
     },
@@ -159,24 +161,28 @@
       if (!objectUrls.has(ed.id + ":cover")) {
         objectUrls.set(ed.id + ":audio", ed.audioBlob ? URL.createObjectURL(ed.audioBlob) : null);
         objectUrls.set(ed.id + ":cover", ed.coverBlob ? URL.createObjectURL(ed.coverBlob) : null);
+        objectUrls.set(ed.id + ":video", ed.videoBlob ? URL.createObjectURL(ed.videoBlob) : null);
       }
       return {
         category: ed.category || t.category || "album",
         title: ed.title || "",
         en: ed.en || "", year: ed.year || "", role: ed.role || "", desc: ed.desc || "",
         cover: objectUrls.get(ed.id + ":cover") || t.cover || "covers/morning-mist.png",
-        src: objectUrls.get(ed.id + ":audio") || t.src || null
+        src: objectUrls.get(ed.id + ":audio") || t.src || null,
+        video: objectUrls.get(ed.id + ":video") || ed.videoUrl || t.video || null
       };
     },
 
-    // 新增一条本地草稿（尚未发布）
-    async add({ category, title, en, year, role, desc, audioFile, coverFile }) {
+    // 新增一条本地草稿（尚未发布）。video 二选一：videoUrl（站外链接）或 videoFile（上传文件）
+    async add({ category, title, en, year, role, desc, audioFile, coverFile, videoUrl, videoFile }) {
       const rec = {
         id: "custom-" + Date.now() + "-" + Math.floor(Math.random() * 1e4),
         category: category || "album",
         title: title, en: en || "", year: year || "", role: role || "", desc: desc || "",
         audioBlob: audioFile || null,
         coverBlob: coverFile || null,
+        videoBlob: videoFile || null,
+        videoUrl: videoFile ? "" : (videoUrl || ""),
         createdAt: Date.now()
       };
       await tx("readwrite", (s) => s.put(rec));
@@ -186,12 +192,11 @@
     // 删除一条本地草稿（立即生效，仅本机）
     async remove(id) {
       await tx("readwrite", (s) => s.delete(id));
-      const a = objectUrls.get(id + ":audio");
-      const c = objectUrls.get(id + ":cover");
-      if (a) URL.revokeObjectURL(a);
-      if (c) URL.revokeObjectURL(c);
-      objectUrls.delete(id + ":audio");
-      objectUrls.delete(id + ":cover");
+      ["audio", "cover", "video"].forEach((k) => {
+        const u = objectUrls.get(id + ":" + k);
+        if (u) URL.revokeObjectURL(u);
+        objectUrls.delete(id + ":" + k);
+      });
     },
 
     // 读取单条草稿原始记录（含 blob），编辑时用
@@ -200,8 +205,8 @@
       return all.find((r) => r.id === id) || null;
     },
 
-    // 修改一条本地草稿；不传新文件则保留原封面/音频
-    async update(id, { category, title, en, year, role, desc, audioFile, coverFile }) {
+    // 修改一条本地草稿；不传新文件则保留原封面/音频/视频
+    async update(id, { category, title, en, year, role, desc, audioFile, coverFile, videoUrl, videoFile }) {
       const rec = await this.getOne(id);
       if (!rec) throw new Error("草稿不存在（可能已删除）");
       rec.category = category || rec.category || "album";
@@ -212,14 +217,16 @@
       rec.desc = desc || "";
       if (audioFile) rec.audioBlob = audioFile;
       if (coverFile) rec.coverBlob = coverFile;
+      // 视频：传了新文件→用文件并清掉链接；否则传了链接→用链接并清掉文件；都没传→保持原样
+      if (videoFile) { rec.videoBlob = videoFile; rec.videoUrl = ""; }
+      else if (videoUrl) { rec.videoUrl = videoUrl; rec.videoBlob = null; }
       await tx("readwrite", (s) => s.put(rec));
       // 失效旧的预览 URL，让新 blob 重新生成
-      const a = objectUrls.get(id + ":audio");
-      const c = objectUrls.get(id + ":cover");
-      if (a) URL.revokeObjectURL(a);
-      if (c) URL.revokeObjectURL(c);
-      objectUrls.delete(id + ":audio");
-      objectUrls.delete(id + ":cover");
+      ["audio", "cover", "video"].forEach((k) => {
+        const u = objectUrls.get(id + ":" + k);
+        if (u) URL.revokeObjectURL(u);
+        objectUrls.delete(id + ":" + k);
+      });
       return rec;
     },
 
@@ -249,8 +256,10 @@
         category: pub.category || "album",
         title: pub.title || "", en: pub.en || "", year: pub.year || "",
         role: pub.role || "", desc: pub.desc || "",
-        origCover: pub.cover || "", origSrc: pub.src || "",
-        audioBlob: null, coverBlob: null,
+        origCover: pub.cover || "", origSrc: pub.src || "", origVideo: pub.video || "",
+        audioBlob: null, coverBlob: null, videoBlob: null,
+        // 站外链接预填回输入框；上传文件类视频无法回填，靠 origVideo 保留
+        videoUrl: /^https?:\/\//i.test(pub.video || "") ? pub.video : "",
         createdAt: Date.now()
       };
       await tx("readwrite", (s) => s.put(rec));
