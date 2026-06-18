@@ -1,5 +1,6 @@
 // 此文件由「管理面板」自动生成,请勿手改。
-// 如需手动调整,改完保持 window.SITE_PUBLISHED / window.SITE_HIDDEN 两个变量即可。
+// 作品:window.SITE_PUBLISHED / window.SITE_HIDDEN
+// 光影:window.SITE_GALLERY_PUBLISHED / window.SITE_GALLERY_HIDDEN
 window.SITE_PUBLISHED = [
   {
     "id": "custom-1781450578485-7909",
@@ -22,6 +23,17 @@ window.SITE_PUBLISHED = [
     "desc": "电影放完后看向窗外，下雨了，我们要不要去雨里跳舞？",
     "cover": "covers/up-1781494192844-943.jpg",
     "src": "audio/up-1781494192844-943.mp3"
+  },
+  {
+    "id": "custom-1781663038890-428",
+    "category": "ad",
+    "title": "TOSHIBA东芝95周年影片",
+    "en": "",
+    "year": "2025",
+    "role": "作曲",
+    "desc": "TOSHIBA HOME APPLIANCES, CRAFTED IN JAPAN, SINCE 1930.",
+    "cover": "covers/up-1781663038890-428.jpg",
+    "video": "https://youtu.be/l951-JuU_X4?si=wf3gom6iPwu8zLCw"
   }
 ];
 window.SITE_HIDDEN = [
@@ -46,3 +58,5 @@ window.SITE_HIDDEN = [
   "builtin-after-rain",
   "builtin-morning-mist"
 ];
+window.SITE_GALLERY_PUBLISHED = [];
+window.SITE_GALLERY_HIDDEN = [];
