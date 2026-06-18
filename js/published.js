@@ -45,6 +45,28 @@ window.SITE_PUBLISHED = [
     "desc": "#信長之野望真戰 #三國志戰略版 #信長之野望 S11赛季宣传片",
     "cover": "covers/up-1781771057113-9254.jpg",
     "video": "https://www.youtube.com/watch?v=v5GgwF_R5Y8"
+  },
+  {
+    "id": "custom-1781772281470-9335",
+    "category": "ad",
+    "title": "OPPO Reno 14 Series 海外 TVC",
+    "en": "",
+    "year": "2025",
+    "role": "Remix",
+    "desc": "#OPPOReno14Series #ShotonOPPO #OPPOAIPhone",
+    "cover": "covers/up-1781772281470-9335.jpg",
+    "video": "https://www.youtube.com/watch?v=eajfYMlU-IM"
+  },
+  {
+    "id": "custom-1781772674272-179",
+    "category": "ad",
+    "title": "金铲铲四周年庆典",
+    "en": "",
+    "year": "2025",
+    "role": "作曲",
+    "desc": "【金铲铲之战】8月30日金铲铲四周年庆典盛大揭幕！",
+    "cover": "covers/up-1781772674272-179.jpg",
+    "video": "https://www.bilibili.com/video/BV1A7e3zgEu1/?vd_source=57636b2b428c219969719ffd30a8141f"
   }
 ];
 window.SITE_HIDDEN = [
