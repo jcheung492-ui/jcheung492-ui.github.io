@@ -89,6 +89,17 @@ window.SITE_PUBLISHED = [
     "desc": "哪怕下一步是泥沼，下一步是深渊—— 我也会踩着你们，踏过去",
     "cover": "covers/up-1781773418647-5642.jpg",
     "video": "https://www.bilibili.com/video/BV1CECzBREko/?share_source=copy_web&vd_source=57636b2b428c219969719ffd30a8141f"
+  },
+  {
+    "id": "custom-1781774095748-2457",
+    "category": "ad",
+    "title": "小米17系列宣传片",
+    "en": "",
+    "year": "2025",
+    "role": "",
+    "desc": "Meet Xiaomi 17",
+    "cover": "covers/up-1781774095748-2457.jpg",
+    "video": "https://www.youtube.com/watch?v=9bU65EtPtrc"
   }
 ];
 window.SITE_HIDDEN = [
