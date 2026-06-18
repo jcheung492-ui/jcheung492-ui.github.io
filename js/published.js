@@ -34,6 +34,17 @@ window.SITE_PUBLISHED = [
     "desc": "TOSHIBA HOME APPLIANCES, CRAFTED IN JAPAN, SINCE 1930.",
     "cover": "covers/up-1781663038890-428.jpg",
     "video": "https://youtu.be/l951-JuU_X4?si=wf3gom6iPwu8zLCw"
+  },
+  {
+    "id": "custom-1781771057113-9254",
+    "category": "ad",
+    "title": "信長之野望 真戰",
+    "en": "",
+    "year": "2025",
+    "role": "作曲",
+    "desc": "#信長之野望真戰 #三國志戰略版 #信長之野望 S11赛季宣传片",
+    "cover": "covers/up-1781771057113-9254.jpg",
+    "video": "https://www.youtube.com/watch?v=v5GgwF_R5Y8"
   }
 ];
 window.SITE_HIDDEN = [
