@@ -1147,3 +1147,112 @@ body.theme-dark .gallery-cell {
   border-color: rgba(255, 255, 255, .12);
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, .10), 0 8px 22px rgba(0, 0, 0, .4);
 }
+
+/* ============================================================
+   作品「歌词 / 详情」按钮 + 玻璃歌词面板
+   ============================================================ */
+.work-detail {
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em;
+  background: none; border: 1px solid var(--rule); color: var(--ink-soft);
+  padding: 7px 14px; border-radius: 999px; cursor: pointer; margin-left: 10px;
+  transition: all 0.2s ease;
+}
+.work-detail:hover { border-color: var(--accent); color: var(--accent); }
+
+.lyr-box {
+  position: fixed; inset: 0; z-index: 120; display: grid; place-items: center; padding: 40px 24px;
+  background: rgba(20, 14, 10, .5);
+  -webkit-backdrop-filter: blur(8px) saturate(140%); backdrop-filter: blur(8px) saturate(140%);
+}
+.lyr-box[hidden] { display: none; }
+.lyr-frame {
+  position: relative; width: min(940px, 96vw); height: min(620px, 86vh);
+  display: grid; grid-template-columns: 300px 1fr; overflow: hidden; border-radius: 26px;
+  background: rgba(34, 28, 23, .62);
+  -webkit-backdrop-filter: blur(24px) saturate(200%); backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, .14);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .5), inset 0 1px 1px rgba(255, 255, 255, .16);
+  color: #f4eee5;
+}
+.lyr-close {
+  position: absolute; top: 14px; right: 16px; z-index: 5;
+  width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 14px;
+  background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .18); color: #f4eee5;
+}
+.lyr-close:hover { background: rgba(255, 255, 255, .22); }
+.lyr-left {
+  padding: 30px 26px; display: flex; flex-direction: column; gap: 14px;
+  border-right: 1px solid rgba(255, 255, 255, .10); overflow-y: auto;
+}
+.lyr-cover { width: 100%; aspect-ratio: 1 / 1; border-radius: 16px; overflow: hidden; box-shadow: 0 12px 30px rgba(0, 0, 0, .4); }
+.lyr-cover img { width: 100%; height: 100%; object-fit: cover; }
+.lyr-play {
+  align-self: flex-start; font-family: var(--font-mono); font-size: 13px; letter-spacing: .04em;
+  padding: 9px 18px; border-radius: 999px; cursor: pointer; background: var(--accent); color: #fff; border: none;
+}
+.lyr-play.is-playing { background: rgba(255, 255, 255, .16); }
+.lyr-title { font-family: var(--font-display); font-size: 26px; font-weight: 600; margin: 6px 0 0; }
+.lyr-meta { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; color: rgba(244, 238, 229, .6); margin: 0; }
+.lyr-credits-h { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--accent); margin: 8px 0 8px; }
+.lyr-cr { font-size: 13.5px; line-height: 1.7; margin: 0; color: rgba(244, 238, 229, .82); }
+.lyr-cr b { color: #fff; font-weight: 600; margin-right: 4px; }
+.lyr-right {
+  padding: 50px 40px; overflow-y: auto; scroll-behavior: smooth; font-size: 16px; line-height: 1.4;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
+}
+.lyr-pad { height: 32%; }
+.lyr-line { margin: 0 0 18px; color: rgba(244, 238, 229, .42); transition: color .25s ease, transform .25s ease; }
+.lyr-line.seekable { cursor: pointer; }
+.lyr-line.seekable:hover { color: rgba(244, 238, 229, .75); }
+.lyr-line.is-active { color: #fff; font-weight: 600; transform: scale(1.03); transform-origin: left; }
+.lyr-empty { color: rgba(244, 238, 229, .5); font-size: 14px; }
+@media (max-width: 720px) {
+  .lyr-frame { grid-template-columns: 1fr; height: 88vh; }
+  .lyr-left { border-right: none; border-bottom: 1px solid rgba(255, 255, 255, .10); flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .lyr-cover { width: 88px; }
+  .lyr-play { margin-left: auto; }
+  .lyr-right { padding: 30px 24px; }
+}
+
+/* ============================================================
+   播放条：极简液态胶囊（对齐预览）——封面 + 标题 + 粗进度条 + 右侧玻璃播放键
+   列表 / 面板的播放按钮也改玻璃质感
+   ============================================================ */
+.player-inner { display: flex; align-items: center; gap: 16px; }
+.pb-prev, .pb-next, .pb-time, .pb-eq { display: none; }   /* 极简：藏掉上一首/下一首/时间/律动 */
+.pb-cover { order: 0; width: 50px; height: 50px; border-radius: 12px; }
+.pb-main { order: 1; flex: 1; gap: 9px; }
+.pb-title-row { gap: 0; }
+.pb-title { font-family: var(--font-serif); font-size: 18px; font-weight: 600; }
+.pb-controls { order: 3; }   /* 只剩播放键，移到最右 */
+.pb-play {
+  width: 46px; height: 46px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .5);
+  background: rgba(255, 255, 255, .5);
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+.pb-play svg { fill: var(--ink); }
+.pb-play:hover { background: var(--accent); border-color: var(--accent); }
+.pb-play:hover svg { fill: #fff; }
+.pb-close { order: 4; align-self: center; opacity: .45; }
+.pb-close:hover { opacity: 1; }
+/* 进度条加粗圆润 */
+.pb-seek::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; }
+.pb-seek::-webkit-slider-thumb { margin-top: -3.5px; }
+.pb-seek::-moz-range-track { height: 6px; border-radius: 3px; }
+.pb-seek::-moz-range-progress { height: 6px; border-radius: 3px; }
+body.theme-dark .pb-play { background: rgba(255, 255, 255, .14); border-color: rgba(255, 255, 255, .2); }
+body.theme-dark .pb-play svg { fill: #f4eee5; }
+
+/* 列表「播放」按钮 + 面板播放键：玻璃质感 */
+.work-listen {
+  background: rgba(255, 255, 255, .42); border-color: rgba(255, 255, 255, .5); color: var(--ink);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+}
+.work-listen:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+body.theme-dark .work-listen { background: rgba(255, 255, 255, .10); border-color: rgba(255, 255, 255, .18); color: var(--ink); }
+.lyr-play {
+  background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .22); color: #f4eee5;
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+.lyr-play:hover, .lyr-play.is-playing { background: var(--accent); border-color: var(--accent); color: #fff; }

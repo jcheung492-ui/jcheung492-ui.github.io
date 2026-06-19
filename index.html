@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/site.css?v=14">
+<link rel="stylesheet" href="css/site.css?v=15">
 </head>
 <body class="texture-on">
 
@@ -62,7 +62,7 @@
         </div>
       </div>
       <figure class="portrait-frame">
-        <img class="portrait-img ph-portrait" src="portrait.jpg?v=14" alt="张百星 / Justin" loading="lazy">
+        <img class="portrait-img ph-portrait" src="portrait.jpg?v=15" alt="张百星 / Justin" loading="lazy">
         <figcaption>张百星 / Justin</figcaption>
       </figure>
     </div>
@@ -159,6 +159,12 @@
         </label>
         <label class="full">一段介绍(可选)
           <input type="text" id="af-desc" placeholder="写在这首歌 / 这部片子发生的时刻" autocomplete="off">
+        </label>
+        <label class="full">制作名单(可选,一行一条,如「词：张三」「混音：李四」)
+          <textarea id="af-credits" rows="3" placeholder="词：xxx&#10;曲：xxx&#10;编曲 / 制作：xxx&#10;混音 / 母带：xxx" autocomplete="off"></textarea>
+        </label>
+        <label class="full">歌词(可选,带 [00:12.30] 时间轴=跟唱滚动;纯文本=静态展示)
+          <textarea id="af-lyrics" rows="5" placeholder="[00:00.00] 第一句&#10;[00:04.20] 第二句&#10;…（或直接粘纯歌词，不带时间）" autocomplete="off"></textarea>
         </label>
         <label class="full" id="af-cover-label">
           <span class="lbl">封面 (jpg / png)</span>
@@ -273,7 +279,7 @@
   <div class="wrap">
     <div class="about-grid">
       <figure class="portrait-frame" style="transform: rotate(-1deg);">
-        <img class="portrait-img ph-about" src="portrait.jpg?v=14" alt="工作室的某个下午" loading="lazy">
+        <img class="portrait-img ph-about" src="portrait.jpg?v=15" alt="工作室的某个下午" loading="lazy">
         <figcaption>工作室的某个下午</figcaption>
       </figure>
       <div class="about-text">
@@ -377,18 +383,19 @@
 </div>
 
 <!-- ===================== 脚本 ===================== -->
-<script src="js/data.js?v=14"></script>
-<script src="js/published.js?v=14"></script>
-<script src="js/library.js?v=14"></script>
-<script src="js/publish.js?v=14"></script>
-<script src="js/supabase.js?v=14"></script>
-<script src="js/comments.js?v=14"></script>
-<script src="js/player.js?v=14"></script>
-<script src="js/admin.js?v=14"></script>
-<script src="js/guestbook.js?v=14"></script>
-<script src="js/gallery.js?v=14"></script>
-<script src="js/router.js?v=14"></script>
-<script src="js/theme.js?v=14"></script>
+<script src="js/data.js?v=15"></script>
+<script src="js/published.js?v=15"></script>
+<script src="js/library.js?v=15"></script>
+<script src="js/publish.js?v=15"></script>
+<script src="js/supabase.js?v=15"></script>
+<script src="js/comments.js?v=15"></script>
+<script src="js/player.js?v=15"></script>
+<script src="js/lyrics.js?v=15"></script>
+<script src="js/admin.js?v=15"></script>
+<script src="js/guestbook.js?v=15"></script>
+<script src="js/gallery.js?v=15"></script>
+<script src="js/router.js?v=15"></script>
+<script src="js/theme.js?v=15"></script>
 
 </body>
 </html>

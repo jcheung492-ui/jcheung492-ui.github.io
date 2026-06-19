@@ -149,7 +149,10 @@
           (t.desc ? '<p class="work-desc">' + esc(t.desc) + "</p>" : "") +
           (playable
             ? '<button class="work-listen" type="button" data-i="' + qi + '">' +
-                (playing ? "正在播放" : "▶ 试听") + "</button>"
+                (playing ? "❚❚ 暂停" : "▶ 播放") + "</button>"
+            : "") +
+          ((t.credits || t.lyrics)
+            ? '<button class="work-detail" type="button" data-id="' + esc(t.id) + '">歌词 / 详情</button>'
             : "") +
           // 可听 / 有视频的作品旁边的评论区
           (hasMedia
@@ -176,6 +179,12 @@
         e.stopPropagation();
         const i = Number(b.dataset.i ?? b.closest(".work-item").dataset.i);
         if (i === index) toggle(); else playAt(i);
+      });
+    });
+    host.querySelectorAll(".work-detail").forEach((b) => {
+      b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (window.lyricsApp) window.lyricsApp.open(b.dataset.id);
       });
     });
     host.querySelectorAll(".work-videohost").forEach((vh) => {
@@ -305,7 +314,7 @@
       const playBtn = el.querySelector(".work-play");
       if (playBtn) playBtn.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
       const listen = el.querySelector(".work-listen");
-      if (listen) listen.textContent = playing ? "正在播放" : "▶ 试听";
+      if (listen) listen.textContent = playing ? "❚❚ 暂停" : "▶ 播放";
     });
     document.querySelectorAll(".sketch-card[data-i]").forEach((el) => {
       const i = Number(el.dataset.i);
@@ -413,6 +422,16 @@
     if (index >= 0) updateBar();
   }
 
-  window.playerApp = { refresh, renderCategoryPage };
+  // 给歌词面板用：播放指定 id、查询当前播放 id、直接拿到常驻 audio
+  function playId(id) {
+    const i = queue.findIndex((t) => t.id === id);
+    if (i < 0) return false;
+    if (i === index) { if (audio.paused) audio.play().catch(() => {}); }
+    else playAt(i);
+    return true;
+  }
+  function currentId() { return index >= 0 && queue[index] ? queue[index].id : null; }
+
+  window.playerApp = { refresh, renderCategoryPage, audio, playId, currentId };
   document.addEventListener("DOMContentLoaded", () => { wireBar(); refresh(); });
 })();

@@ -186,6 +186,8 @@
         src: objectUrls.get(rec.id + ":audio") || null,
         cover: objectUrls.get(rec.id + ":cover") || "covers/morning-mist.png",
         video: objectUrls.get(rec.id + ":video") || rec.videoUrl || null,
+        credits: rec.credits || "",
+        lyrics: rec.lyrics || "",
         builtin: false
       };
     },
@@ -204,16 +206,19 @@
         en: ed.en || "", year: ed.year || "", role: ed.role || "", desc: ed.desc || "",
         cover: objectUrls.get(ed.id + ":cover") || t.cover || "covers/morning-mist.png",
         src: objectUrls.get(ed.id + ":audio") || t.src || null,
-        video: objectUrls.get(ed.id + ":video") || ed.videoUrl || t.video || null
+        video: objectUrls.get(ed.id + ":video") || ed.videoUrl || t.video || null,
+        credits: ed.credits != null ? ed.credits : (t.credits || ""),
+        lyrics: ed.lyrics != null ? ed.lyrics : (t.lyrics || "")
       };
     },
 
     // 新增一条本地草稿（尚未发布）。video 二选一：videoUrl（站外链接）或 videoFile（上传文件）
-    async add({ category, title, en, year, role, desc, audioFile, coverFile, videoUrl, videoFile }) {
+    async add({ category, title, en, year, role, desc, credits, lyrics, audioFile, coverFile, videoUrl, videoFile }) {
       const rec = {
         id: "custom-" + Date.now() + "-" + Math.floor(Math.random() * 1e4),
         category: category || "album",
         title: title, en: en || "", year: year || "", role: role || "", desc: desc || "",
+        credits: credits || "", lyrics: lyrics || "",
         audioBlob: audioFile || null,
         coverBlob: coverFile || null,
         videoBlob: videoFile || null,
@@ -241,7 +246,7 @@
     },
 
     // 修改一条本地草稿；不传新文件则保留原封面/音频/视频
-    async update(id, { category, title, en, year, role, desc, audioFile, coverFile, videoUrl, videoFile }) {
+    async update(id, { category, title, en, year, role, desc, credits, lyrics, audioFile, coverFile, videoUrl, videoFile }) {
       const rec = await this.getOne(id);
       if (!rec) throw new Error("草稿不存在（可能已删除）");
       rec.category = category || rec.category || "album";
@@ -250,6 +255,8 @@
       rec.year = year || "";
       rec.role = role || "";
       rec.desc = desc || "";
+      rec.credits = credits || "";
+      rec.lyrics = lyrics || "";
       if (audioFile) rec.audioBlob = audioFile;
       if (coverFile) rec.coverBlob = coverFile;
       // 视频：传了新文件→用文件并清掉链接；否则传了链接→用链接并清掉文件；都没传→保持原样
@@ -291,6 +298,7 @@
         category: pub.category || "album",
         title: pub.title || "", en: pub.en || "", year: pub.year || "",
         role: pub.role || "", desc: pub.desc || "",
+        credits: pub.credits || "", lyrics: pub.lyrics || "",
         origCover: pub.cover || "", origSrc: pub.src || "", origVideo: pub.video || "",
         audioBlob: null, coverBlob: null, videoBlob: null,
         // 站外链接预填回输入框；上传文件类视频无法回填，靠 origVideo 保留

@@ -182,6 +182,8 @@
         title: d.title || "", en: d.en || "", year: d.year || "",
         role: d.role || "", desc: d.desc || ""
       };
+      if (d.credits) entry.credits = d.credits;
+      if (d.lyrics) entry.lyrics = d.lyrics;
       const base = d.id.replace(/^custom-/, "up-");
       if (d.coverBlob) entry.cover = await blobToTree(d.coverBlob, "cover", base);
       if (d.audioBlob) entry.src = await blobToTree(d.audioBlob, "audio", base);
@@ -205,6 +207,10 @@
         role: ed.role || "", desc: ed.desc || "",
         cover: t.cover, src: t.src   // 默认保留线上原文件
       };
+      const edCredits = ed.credits != null ? ed.credits : (t.credits || "");
+      const edLyrics = ed.lyrics != null ? ed.lyrics : (t.lyrics || "");
+      if (edCredits) entry.credits = edCredits;
+      if (edLyrics) entry.lyrics = edLyrics;
       const base = ed.id.replace(/^edit-/, "up-edit-");
       if (ed.coverBlob) entry.cover = await blobToTree(ed.coverBlob, "cover", base);
       if (ed.audioBlob) entry.src = await blobToTree(ed.audioBlob, "audio", base);

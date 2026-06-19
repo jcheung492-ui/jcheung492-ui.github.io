@@ -473,6 +473,8 @@
     $("#af-year").value = rec.year || "";
     $("#af-role").value = rec.role || "";
     $("#af-desc").value = rec.desc || "";
+    if ($("#af-credits")) $("#af-credits").value = rec.credits || "";
+    if ($("#af-lyrics")) $("#af-lyrics").value = rec.lyrics || "";
     $("#af-audio").value = "";   // 文件框无法预填，留空＝保留原文件
     $("#af-cover").value = "";
     if ($("#af-video")) $("#af-video").value = rec.videoUrl || "";
@@ -546,6 +548,8 @@
       const year = $("#af-year").value.trim();
       const role = $("#af-role").value.trim();
       const desc = $("#af-desc").value.trim();
+      const credits = $("#af-credits") ? $("#af-credits").value.trim() : "";
+      const lyrics = $("#af-lyrics") ? $("#af-lyrics").value.trim() : "";
       const audioFile = $("#af-audio").files[0];
       const coverFile = $("#af-cover").files[0];
       const videoUrl = $("#af-video") ? $("#af-video").value.trim() : "";
@@ -572,14 +576,14 @@
       status.textContent = editing ? "正在保存修改…" : "正在保存草稿…";
       try {
         if (editing) {
-          await window.musicLib.update(editing, { category, title, en, year, role, desc, audioFile, coverFile, videoUrl, videoFile });
+          await window.musicLib.update(editing, { category, title, en, year, role, desc, credits, lyrics, audioFile, coverFile, videoUrl, videoFile });
           editingId = null;
           form.reset();
           syncAudioRequirement();
           setEditMode(null);
           status.textContent = "已保存修改 ✓ —— 确认后点上方「发布到线上」";
         } else {
-          await window.musicLib.add({ category, title, en, year, role, desc, audioFile, coverFile, videoUrl, videoFile });
+          await window.musicLib.add({ category, title, en, year, role, desc, credits, lyrics, audioFile, coverFile, videoUrl, videoFile });
           form.reset();
           syncAudioRequirement();
           status.textContent = "已加入草稿 ✓ —— 确认后点上方「发布到线上」";
