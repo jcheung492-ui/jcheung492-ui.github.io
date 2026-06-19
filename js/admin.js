@@ -69,21 +69,106 @@
     };
   }
 
+  // ---- 拖动排序：只能在同一分类（分区）内拖动；松手后存成「顺序草稿」，发布后对所有人生效 ----
+  let dragEl = null;
+  let dragGroup = null;   // 拖动起点所在的分区容器（限制跨分类）
+
+  // 在指定分区容器内，找到光标当前应插入位置：返回应排在其「之前」的那个行（null = 末尾）
+  function rowAfterPointer(group, y) {
+    const rows = [...group.querySelectorAll(".admin-row:not(.is-dragging)")];
+    let closest = { dist: -Infinity, el: null };
+    for (const row of rows) {
+      const r = row.getBoundingClientRect();
+      const offset = y - r.top - r.height / 2;   // <0 表示光标在该行上半部
+      if (offset < 0 && offset > closest.dist) closest = { dist: offset, el: row };
+    }
+    return closest.el;
+  }
+
+  async function commitRowOrder(box) {
+    // 按各分区在 DOM 中的先后，拼成完整 id 序列（分类内顺序即拖动后的顺序）
+    const ids = [...box.querySelectorAll(".admin-row")].map((el) => el.dataset.id);
+    window.musicLib.setDraftOrder(ids);
+    // 重排会影响公开预览与发布计数；列表本身保持当前 DOM 顺序，避免拖完跳动
+    await updatePublishUI();
+    if (window.playerApp) await window.playerApp.refresh();
+  }
+
+  function wireRowDrag(box) {
+    if (box.dataset.dragWired) return;   // 委托在 box 上，绑一次即可（行/分区可反复重建）
+    box.dataset.dragWired = "1";
+    box.addEventListener("dragstart", (e) => {
+      const row = e.target.closest(".admin-row");
+      if (!row) return;
+      dragEl = row;
+      dragGroup = row.closest(".admin-rows");
+      row.classList.add("is-dragging");
+      if (dragGroup) dragGroup.classList.add("is-droptarget");
+      e.dataTransfer.effectAllowed = "move";
+      try { e.dataTransfer.setData("text/plain", row.dataset.id); } catch (err) {}
+    });
+    box.addEventListener("dragover", (e) => {
+      if (!dragEl || !dragGroup) return;
+      const overGroup = e.target.closest(".admin-rows");
+      // 只允许在起点分区内移动：光标不在本分区就不接受放置（指针显示禁止）
+      if (overGroup !== dragGroup) { e.dataTransfer.dropEffect = "none"; return; }
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      const after = rowAfterPointer(dragGroup, e.clientY);
+      if (after == null) dragGroup.appendChild(dragEl);
+      else if (after !== dragEl) dragGroup.insertBefore(dragEl, after);
+    });
+    box.addEventListener("drop", (e) => { if (dragEl) e.preventDefault(); });
+    box.addEventListener("dragend", async () => {
+      if (!dragEl) return;
+      dragEl.classList.remove("is-dragging");
+      if (dragGroup) dragGroup.classList.remove("is-droptarget");
+      dragEl = null; dragGroup = null;
+      await commitRowOrder(box);
+    });
+  }
+
+  // 单行 HTML
+  function adminRowHTML(t) {
+    const m = rowMeta(t);
+    return (
+      '<div class="admin-row ' + m.cls + '" draggable="true" data-id="' + esc(t.id) + '" data-cat="' + esc(t.category || "") + '">' +
+        '<span class="ar-handle" title="拖动调整展示顺序（仅本分类内）" aria-label="拖动排序">⠿</span>' +
+        '<img src="' + (t.cover || "covers/morning-mist.png") + '" alt="">' +
+        '<span class="ar-title">' + esc(t.title) + "</span>" +
+        '<span class="ar-kind">' + esc(m.chip) + "</span>" +
+        m.btns +
+      "</div>"
+    );
+  }
+
+  // 管理列表里分区的先后顺序
+  const ADMIN_CAT_ORDER = ["album", "ad", "game", "film", "sketch"];
+
   async function renderAdminList() {
     const box = $("#admin-tracklist");
     if (!box) return;
     const all = await window.musicLib.getAllWithHidden();
-    box.innerHTML = all.map((t) => {
-      const m = rowMeta(t);
+
+    // 按分类分组（保持各分类内部的现有顺序）；未知分类排到最后
+    const cats = ADMIN_CAT_ORDER.slice();
+    all.forEach((t) => { if (t.category && !cats.includes(t.category)) cats.push(t.category); });
+
+    box.innerHTML = cats.map((cat) => {
+      const items = all.filter((t) => (t.category || "") === cat);
+      if (!items.length) return "";
       return (
-        '<div class="admin-row ' + m.cls + '">' +
-          '<img src="' + (t.cover || "covers/morning-mist.png") + '" alt="">' +
-          '<span class="ar-title">' + esc(t.title) + "</span>" +
-          '<span class="ar-kind">' + esc(m.chip) + "</span>" +
-          m.btns +
+        '<div class="admin-catgroup" data-cat="' + esc(cat) + '">' +
+          '<p class="admin-cathead">' + esc(CAT_LABEL[cat] || cat) +
+            '<span class="ach-count">' + items.length + "</span></p>" +
+          '<div class="admin-rows" data-cat="' + esc(cat) + '">' +
+            items.map(adminRowHTML).join("") +
+          "</div>" +
         "</div>"
       );
     }).join("");
+
+    wireRowDrag(box);
 
     box.querySelectorAll("button").forEach((b) => {
       b.addEventListener("click", async () => {
@@ -298,11 +383,12 @@
     if (!countEl || !btn) return;
     const drafts = await window.musicLib.getCustom();
     const galN = window.galleryLib ? await window.galleryLib.pendingCount() : 0;
+    const orderN = window.musicLib.orderChanged() ? 1 : 0;
     const n = drafts.length +
       window.musicLib.getLocalHidden().length +
       window.musicLib.getPendingUnhide().length +
       window.musicLib.getPendingDelete().length +
-      galN;
+      galN + orderN;
     const hasToken = window.publisher.hasToken();
     countEl.textContent = n === 0 ? "没有未发布的改动" : ("有 " + n + " 项未发布的改动");
     countEl.classList.toggle("has-changes", n > 0);
@@ -363,7 +449,8 @@
           (res.edited ? ("更新作品 " + res.edited + " 项。") : "") +
           (res.removed ? ("移除作品 " + res.removed + " 项。") : "") +
           (res.galAdded ? ("新增照片 " + res.galAdded + " 张。") : "") +
-          (res.galRemoved ? ("移除照片 " + res.galRemoved + " 张。") : "");
+          (res.galRemoved ? ("移除照片 " + res.galRemoved + " 张。") : "") +
+          (res.reordered ? "已更新展示顺序。" : "");
         await refreshAll();
       } catch (err) {
         status.textContent = "✗ 发布失败:" + err.message;

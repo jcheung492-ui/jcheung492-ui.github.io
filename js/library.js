@@ -17,6 +17,7 @@
   const HIDDEN_KEY = "bx-hidden-builtins";   // 草稿:待下架的默认作品 id
   const UNHIDE_KEY = "bx-pending-unhide";    // 草稿:待恢复上架的(已发布下架的)默认作品 id
   const DELETE_KEY = "bx-pending-delete";    // 草稿:待删除的已发布作品 id
+  const ORDER_KEY  = "bx-order-draft";       // 草稿:自定义展示顺序(id 数组),发布后写进 SITE_ORDER
   // 光影图廊用的同类 localStorage 键
   const GAL_HIDDEN_KEY = "bx-gal-hidden";    // 草稿:待下架的默认照片 id
   const GAL_UNHIDE_KEY = "bx-gal-unhide";    // 草稿:待恢复上架的(已发布下架的)默认照片 id
@@ -61,6 +62,40 @@
 
   function publishedHidden() {
     return Array.isArray(window.SITE_HIDDEN) ? window.SITE_HIDDEN : [];
+  }
+
+  // ---- 展示顺序 ----
+  // 线上已发布顺序 = window.SITE_ORDER（published.js 维护）
+  // 本地草稿顺序   = localStorage[ORDER_KEY]（拖动后暂存，发布前只本机生效）
+  function publishedOrder() { return Array.isArray(window.SITE_ORDER) ? window.SITE_ORDER : []; }
+  function getDraftOrder() {
+    const raw = localStorage.getItem(ORDER_KEY);
+    if (!raw) return null;
+    try { const a = JSON.parse(raw); return Array.isArray(a) ? a : null; }
+    catch (e) { return null; }
+  }
+  // 当前生效顺序：有草稿用草稿，否则用线上
+  function effectiveOrder() { return getDraftOrder() || publishedOrder(); }
+  // 草稿顺序是否真的改变了线上顺序（用于「未发布改动」计数）
+  function orderChanged() {
+    const d = getDraftOrder();
+    if (!d) return false;
+    return JSON.stringify(d) !== JSON.stringify(publishedOrder());
+  }
+  // 按生效顺序稳定重排：在顺序表里的按表内位置排；不在表里的（新作品）保持原相对位置、排到最后
+  function applyOrder(list) {
+    const order = effectiveOrder();
+    if (!order || !order.length) return list;
+    const pos = new Map(order.map((id, i) => [id, i]));
+    const BIG = order.length;
+    return list
+      .map((t, i) => ({ t, i }))
+      .sort((a, b) => {
+        const pa = pos.has(a.t.id) ? pos.get(a.t.id) : BIG + a.i;
+        const pb = pos.has(b.t.id) ? pos.get(b.t.id) : BIG + b.i;
+        return pa - pb;
+      })
+      .map((x) => x.t);
   }
 
   const objectUrls = new Map();
@@ -123,7 +158,7 @@
         .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
         .map((t) => this.toPlayable(t));
 
-      return builtins.concat(published, drafts);
+      return applyOrder(builtins.concat(published, drafts));
     },
 
     // 上架中的曲目（播放器用）：默认(未下架) + 已发布(未待删) + 本地草稿
@@ -272,6 +307,22 @@
       if (ed) await this.remove(ed.id);
     },
 
+    // ---- 展示顺序：给管理面板拖动 / 发布用 ----
+    getEffectiveOrder() { return effectiveOrder(); },
+    getDraftOrder() { return getDraftOrder(); },
+    getPublishedOrder() { return publishedOrder(); },
+    // 保存一份新的草稿顺序（完整 id 序列）。与线上一致时自动撤掉草稿。
+    setDraftOrder(ids) {
+      const arr = Array.isArray(ids) ? ids.slice() : [];
+      if (JSON.stringify(arr) === JSON.stringify(publishedOrder())) {
+        localStorage.removeItem(ORDER_KEY);
+      } else {
+        setList(ORDER_KEY, arr);
+      }
+    },
+    clearDraftOrder() { localStorage.removeItem(ORDER_KEY); },
+    orderChanged() { return orderChanged(); },
+
     // ---- 发布相关：给 publish.js 用 ----
     getLocalHidden()  { return getList(HIDDEN_KEY); },
     getPendingUnhide() { return getList(UNHIDE_KEY); },
@@ -283,7 +334,8 @@
       return drafts.length > 0 ||
         getList(HIDDEN_KEY).length > 0 ||
         getList(UNHIDE_KEY).length > 0 ||
-        getList(DELETE_KEY).length > 0;
+        getList(DELETE_KEY).length > 0 ||
+        orderChanged();
     },
 
     // 发布成功后清空所有本地草稿
@@ -293,6 +345,7 @@
       setList(HIDDEN_KEY, []);
       setList(UNHIDE_KEY, []);
       setList(DELETE_KEY, []);
+      localStorage.removeItem(ORDER_KEY);
     }
   };
 
