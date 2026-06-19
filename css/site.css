@@ -924,3 +924,226 @@ body.admin-mode .admin-panel { display: block; }
   .work-item { grid-template-columns: 1fr; gap: 14px; }
   .work-cover { max-width: 200px; }
 }
+
+/* ============================================================
+   液态玻璃主题 (Liquid Glass)
+   亮色 = 彩光 mesh 背景 / 暗色 = 暖纸暗底（Studio 按钮切 body.theme-dark）
+   原则：只升级「背景 + 表面材质」，不改任何布局。
+   ============================================================ */
+:root {
+  --g-blur: 19px;            /* 背景模糊 */
+  --g-sat: 200%;             /* 提饱和 */
+  --g-tint: 0.60;            /* 玻璃白底不透明度 */
+  --g-rim: 0.34;             /* 顶部高光描边强度 */
+  --g-radius: 22px;
+  --g-shadow: 0 14px 40px rgba(60, 34, 14, 0.16), 0 2px 8px rgba(60, 34, 14, 0.08);
+}
+
+/* —— 背景层（固定，内容在其上滚动）—— */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(60% 50% at 16% 18%, #ffce96 0%, transparent 60%),
+    radial-gradient(55% 45% at 86% 14%, #edc3cf 0%, transparent 55%),
+    radial-gradient(60% 60% at 80% 84%, #b2c3da 0%, transparent 55%),
+    radial-gradient(50% 50% at 20% 90%, #93e6c2 0%, transparent 55%),
+    linear-gradient(135deg, #f0e6d8, #e9ddcb);
+}
+body.theme-dark::before {
+  background:
+    radial-gradient(54% 44% at 16% 18%, rgba(255, 182, 112, .40) 0%, transparent 60%),
+    radial-gradient(48% 42% at 84% 16%, rgba(226, 160, 120, .24) 0%, transparent 58%),
+    radial-gradient(54% 54% at 80% 84%, rgba(214, 166, 116, .34) 0%, transparent 58%),
+    radial-gradient(46% 46% at 20% 88%, rgba(200, 168, 124, .26) 0%, transparent 58%),
+    linear-gradient(160deg, #1d1812, #15110c);
+}
+/* mesh 已盖住 body 自带纸纹，关掉以免重复叠加 */
+body.texture-on { background-image: none; }
+
+/* —— 玻璃材质（亮色）—— */
+.site-nav,
+.player-bar,
+.portrait-frame,
+.admin-panel {
+  background: rgba(255, 255, 255, var(--g-tint));
+  -webkit-backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat));
+  backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat));
+}
+/* 通栏的顶/底栏：不加圆角，只换更通透玻璃 + 细高光分隔 */
+/* 导航：浮动玻璃胶囊（对齐预览）。仍用 sticky 占位，避免遮挡下方内容 */
+.site-nav {
+  position: sticky; top: 16px;
+  width: min(1040px, 94vw); margin: 16px auto 0;
+  border: 1px solid rgba(255, 255, 255, calc(var(--g-rim) * 0.9));
+  border-radius: 999px;
+  box-shadow: var(--g-shadow),
+    inset 0 1px 1px rgba(255, 255, 255, calc(var(--g-rim) + 0.35)),
+    inset 0 -1px 1px rgba(255, 255, 255, calc(var(--g-rim) * 0.4));
+}
+.site-nav .wrap { max-width: none; padding: 11px 24px; align-items: center; }
+/* 播放条：浮动玻璃胶囊（对齐预览），保留全部控件 */
+.player-bar {
+  left: 50%; right: auto; bottom: 24px;
+  width: min(720px, 92vw); height: auto;
+  border: 1px solid rgba(255, 255, 255, calc(var(--g-rim) * 0.9));
+  border-radius: 30px;
+  box-shadow: var(--g-shadow),
+    inset 0 1px 1px rgba(255, 255, 255, calc(var(--g-rim) + 0.35)),
+    inset 0 -1px 1px rgba(255, 255, 255, calc(var(--g-rim) * 0.4));
+  transform: translate(-50%, 180%);
+}
+.player-bar.is-open { transform: translate(-50%, 0); }
+.player-inner { max-width: none; height: auto; padding: 11px 16px; gap: 14px; }
+.pb-cover { width: 46px; height: 46px; border-radius: 12px; border-color: rgba(255, 255, 255, .4); }
+/* 卡片类：玻璃 + 圆角 + 顶部内高光 + 漂浮投影 */
+.portrait-frame,
+.admin-panel {
+  border: 1px solid rgba(255, 255, 255, calc(var(--g-rim) * 0.9));
+  border-radius: var(--g-radius);
+  box-shadow: var(--g-shadow),
+    inset 0 1px 1px rgba(255, 255, 255, calc(var(--g-rim) + 0.35)),
+    inset 0 -1px 1px rgba(255, 255, 255, calc(var(--g-rim) * 0.4));
+}
+.work-cover {
+  border-radius: 16px;
+  border-color: rgba(255, 255, 255, .4);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, .5), 0 6px 18px rgba(60, 34, 14, .10);
+}
+/* 作品封面上的试听播放键 → 玻璃样式（与视频播放键一致）*/
+.work-play {
+  background: color-mix(in srgb, var(--paper) 42%, transparent);
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+  border-color: rgba(255, 255, 255, .4);
+}
+.work-play svg { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .4)); }
+
+/* —— 玻璃材质（暗色覆盖）—— */
+body.theme-dark .site-nav,
+body.theme-dark .player-bar,
+body.theme-dark .portrait-frame,
+body.theme-dark .admin-panel {
+  background: rgba(34, 28, 23, calc(var(--g-tint) + 0.06));
+}
+body.theme-dark .site-nav { border-color: rgba(255, 255, 255, .12); }
+body.theme-dark .player-bar { border-color: rgba(255, 255, 255, .12); }
+body.theme-dark .pb-cover { border-color: rgba(255, 255, 255, .12); }
+body.theme-dark .portrait-frame,
+body.theme-dark .admin-panel {
+  border-color: rgba(255, 255, 255, .12);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .5),
+    inset 0 1px 1px rgba(255, 255, 255, .10),
+    inset 0 -1px 1px rgba(255, 255, 255, .03);
+}
+body.theme-dark .work-cover {
+  border-color: rgba(255, 255, 255, .12);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, .10), 0 8px 22px rgba(0, 0, 0, .4);
+}
+
+/* —— 降级：不支持 backdrop-filter 时退回实色 —— */
+@supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
+  .site-nav, .player-bar, .portrait-frame, .admin-panel { background: var(--paper); }
+}
+/* —— 无障碍：系统要求降低透明度时关玻璃 —— */
+@media (prefers-reduced-transparency: reduce) {
+  .site-nav, .player-bar, .portrait-frame, .admin-panel {
+    -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--paper);
+  }
+  body::before, body.theme-dark::before { background: var(--paper); }
+}
+
+/* ============================================================
+   内容面板玻璃化 —— 对齐预览的「整页液态」：hero 文字块 / 首页三入口 /
+   作品分类区 / 随手录卡 / 随笔 / 关于 / 联系 / 留言表单 都变玻璃面板
+   ============================================================ */
+.hero-grid > div,
+.work-cat,
+#catdetail-strip,
+.strip-link,
+.sketch-card,
+.writing-item,
+.about-text,
+.contact-card,
+.gb-form,
+.gallery-block {
+  background: rgba(255, 255, 255, var(--g-tint));
+  -webkit-backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat));
+  backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat));
+  border: 1px solid rgba(255, 255, 255, calc(var(--g-rim) * 0.9));
+  border-radius: var(--g-radius);
+  box-shadow: var(--g-shadow),
+    inset 0 1px 1px rgba(255, 255, 255, calc(var(--g-rim) + 0.35)),
+    inset 0 -1px 1px rgba(255, 255, 255, calc(var(--g-rim) * 0.4));
+}
+/* 各面板内边距（原本是裸排版/分隔线，改卡片后补内边距与间距） */
+/* —— hero 1:1 对齐预览 —— */
+.hero-grid { grid-template-columns: 1.5fr 1fr; gap: 50px; align-items: center; }  /* 左:右 ≈ 3:2，照片放大 */
+.hero-grid > div { padding: clamp(28px, 3vw, 38px); }
+.hero h1 { font-size: clamp(34px, 4.6vw, 58px); line-height: 1.12; font-weight: 600; margin-bottom: 22px; }
+/* 首页照片：摆正 + 统一竖裁 + 与预览一致的取景（About 页相框斜角不受影响）*/
+.hero .portrait-frame { transform: none; padding: 14px; }
+.hero .portrait-img { aspect-ratio: 4 / 4.6; object-position: center 22%; border-radius: 12px; }
+/* roles：改成圆角胶囊小标签（去掉大写与「·」分隔）*/
+.hero-roles span {
+  padding: 6px 14px; border: 1px solid var(--rule); border-radius: 999px;
+  background: rgba(255, 255, 255, .28); text-transform: none;
+  letter-spacing: 0.04em; color: var(--ink-soft);
+}
+.hero-roles span::after { content: ""; margin-left: 0; }
+body.theme-dark .hero-roles span { background: rgba(255, 255, 255, .08); }
+.work-cat { padding: 30px clamp(22px, 3vw, 34px); margin-bottom: 26px; }
+#catdetail-strip { padding: 24px clamp(20px, 3vw, 32px); }
+.about-text { padding: 28px 30px; }
+.contact-card { padding: 24px 26px; }
+.gb-form { padding: 26px 28px; }
+
+/* 首页三入口：由「带分隔线的列表行」改成独立玻璃卡片 */
+.home-strip { border-top: none; padding: 4px 0 40px; }
+.home-strip .wrap { display: grid; gap: 14px; padding-top: 8px; }
+.strip-link { padding: 20px 26px; border-bottom: none; }
+.strip-link:last-child { border-bottom: none; }
+.strip-link:hover { padding-left: 26px; transform: translateX(4px); color: var(--accent); }
+
+/* 随笔：行改卡片 */
+.writing-list { display: grid; gap: 18px; }
+.writing-item { padding: 22px 26px; border-bottom: none !important; }
+
+/* —— 暗色覆盖 —— */
+body.theme-dark .hero-grid > div,
+body.theme-dark .work-cat,
+body.theme-dark #catdetail-strip,
+body.theme-dark .strip-link,
+body.theme-dark .sketch-card,
+body.theme-dark .writing-item,
+body.theme-dark .about-text,
+body.theme-dark .contact-card,
+body.theme-dark .gb-form,
+body.theme-dark .gallery-block {
+  background: rgba(34, 28, 23, calc(var(--g-tint) + 0.06));
+  border-color: rgba(255, 255, 255, .12);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .5),
+    inset 0 1px 1px rgba(255, 255, 255, .10),
+    inset 0 -1px 1px rgba(255, 255, 255, .03);
+}
+
+/* —— 降级 / 无障碍：这些面板也退回实色 —— */
+@supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
+  .hero-grid > div, .work-cat, #catdetail-strip, .strip-link,
+  .sketch-card, .writing-item, .about-text, .contact-card, .gb-form, .gallery-block { background: var(--card); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .hero-grid > div, .work-cat, #catdetail-strip, .strip-link,
+  .sketch-card, .writing-item, .about-text, .contact-card, .gb-form, .gallery-block {
+    -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--card);
+  }
+}
+
+/* —— 光影图廊：区块改玻璃面板 + 照片格补玻璃边 —— */
+.gallery-block { margin-top: 64px; padding: 30px clamp(22px, 3vw, 34px); border-top: none; }
+.gallery-cell {
+  border-color: rgba(255, 255, 255, .4); border-radius: 12px;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, .5), 0 6px 18px rgba(60, 34, 14, .10);
+}
+body.theme-dark .gallery-cell {
+  border-color: rgba(255, 255, 255, .12);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, .10), 0 8px 22px rgba(0, 0, 0, .4);
+}
