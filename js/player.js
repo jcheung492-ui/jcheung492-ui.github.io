@@ -209,25 +209,19 @@
     }).join("") + "</div>";
   }
 
-  // Works 页:每类只显 Top 3,超过则右下角「查看更多」
+  // Works 页:保留分栏(专辑/广告/游戏/电影),但暂时去掉「每栏只显 Top 3 + Learn more」,
+  // 每个分区直接铺开该类全部作品
   function renderWorks(all) {
     lastAll = all;
     const host = $("#works-cats");
     if (!host) return;
     const cats = window.SITE_CATEGORIES || [];
-    const TOP = 3;
 
     host.innerHTML = cats.map((c) => {
       const items = all.filter((t) => t.category === c.key);
-      const top = items.slice(0, TOP);
       const inner = items.length
-        ? listHTML(top)
+        ? listHTML(items)
         : '<p class="work-empty">这个分类还没有作品 —— 在页脚打开「管理」就能添加。</p>';
-      const more = items.length > TOP
-        ? '<div class="work-more-row">' +
-            '<a class="work-more" href="#/cat/' + c.key + '"><span class="wm-en">Learn more</span> →</a>' +
-          "</div>"
-        : "";
       return (
         '<section class="work-cat" id="cat-' + c.key + '">' +
           '<div class="work-cat-head">' +
@@ -235,7 +229,7 @@
             '<h2 class="work-cat-title">' + esc(c.label) + "</h2>" +
             (c.intro ? '<p class="work-cat-intro">' + esc(c.intro) + "</p>" : "") +
           "</div>" +
-          inner + more +
+          inner +
         "</section>"
       );
     }).join("");
