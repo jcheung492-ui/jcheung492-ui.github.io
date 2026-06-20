@@ -830,6 +830,8 @@ body.admin-mode .admin-panel { display: block; }
 
 .admin-tracklist { margin-top: 26px; border-top: 1px solid var(--rule); }
 .admin-gallery-section { margin-top: 40px; padding-top: 32px; border-top: 2px solid var(--rule); }
+.admin-journal-section { margin-top: 40px; padding-top: 32px; border-top: 2px solid var(--rule); }
+.writing-empty { color: var(--muted); font-size: 14px; }
 .admin-gallery-section h3 { margin: 0 0 4px; font-size: 18px; }
 .admin-row {
   display: flex; align-items: center; gap: 14px;

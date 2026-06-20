@@ -14,6 +14,7 @@
   const DB_NAME = "bx-music";
   const STORE = "tracks";
   const GAL_STORE = "gallery";               // 光影图廊的本地草稿
+  const JOUR_STORE = "journal";              // 随笔的本地草稿
   const HIDDEN_KEY = "bx-hidden-builtins";   // 草稿:待下架的默认作品 id
   const UNHIDE_KEY = "bx-pending-unhide";    // 草稿:待恢复上架的(已发布下架的)默认作品 id
   const DELETE_KEY = "bx-pending-delete";    // 草稿:待删除的已发布作品 id
@@ -22,10 +23,14 @@
   const GAL_HIDDEN_KEY = "bx-gal-hidden";    // 草稿:待下架的默认照片 id
   const GAL_UNHIDE_KEY = "bx-gal-unhide";    // 草稿:待恢复上架的(已发布下架的)默认照片 id
   const GAL_DELETE_KEY = "bx-gal-delete";    // 草稿:待删除的已发布照片 id
+  // 随笔用的同类 localStorage 键
+  const JOUR_HIDDEN_KEY = "bx-jour-hidden";  // 草稿:待下架的默认随笔 id
+  const JOUR_UNHIDE_KEY = "bx-jour-unhide";  // 草稿:待恢复上架的随笔 id
+  const JOUR_DELETE_KEY = "bx-jour-delete";  // 草稿:待删除的已发布随笔 id
 
   function openDB() {
     return new Promise((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, 2);
+      const req = indexedDB.open(DB_NAME, 3);
       req.onupgradeneeded = () => {
         const db = req.result;
         if (!db.objectStoreNames.contains(STORE)) {
@@ -33,6 +38,9 @@
         }
         if (!db.objectStoreNames.contains(GAL_STORE)) {
           db.createObjectStore(GAL_STORE, { keyPath: "id" });
+        }
+        if (!db.objectStoreNames.contains(JOUR_STORE)) {
+          db.createObjectStore(JOUR_STORE, { keyPath: "id" });
         }
       };
       req.onsuccess = () => resolve(req.result);
@@ -501,6 +509,117 @@
       setList(GAL_HIDDEN_KEY, []);
       setList(GAL_UNHIDE_KEY, []);
       setList(GAL_DELETE_KEY, []);
+    }
+  };
+
+  // ============================================================
+  // 随笔 journalLib —— 与 galleryLib 同构，但纯文本（无图片/blob）
+  //   1) 默认占位  window.SITE_JOURNAL            (js/data.js,手写;可「下架」)
+  //   2) 已发布    window.SITE_JOURNAL_PUBLISHED  (js/published.js,面板维护)
+  //   3) 本地草稿  IndexedDB(journal 存储区)       (面板暂存、尚未发布,只本机可见)
+  // ============================================================
+  function jourHidden() {
+    return Array.isArray(window.SITE_JOURNAL_HIDDEN) ? window.SITE_JOURNAL_HIDDEN : [];
+  }
+
+  window.journalLib = {
+    async getCustom() {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const t = db.transaction(JOUR_STORE, "readonly");
+        const req = t.objectStore(JOUR_STORE).getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      });
+    },
+
+    // 合并后的完整随笔列表（含来源 / 草稿状态），给管理面板用
+    async getAllWithHidden() {
+      const localHidden = new Set(getList(JOUR_HIDDEN_KEY));
+      const pubHidden = new Set(jourHidden());
+      const pendUnhide = new Set(getList(JOUR_UNHIDE_KEY));
+      const pendDelete = new Set(getList(JOUR_DELETE_KEY));
+
+      const builtins = (window.SITE_JOURNAL || []).map((j) => {
+        const hiddenNow = (pubHidden.has(j.id) || localHidden.has(j.id)) && !pendUnhide.has(j.id);
+        return {
+          ...j, source: "builtin",
+          hidden: hiddenNow,
+          pendingHide: localHidden.has(j.id) && !pubHidden.has(j.id),
+          pendingUnhide: pendUnhide.has(j.id)
+        };
+      });
+
+      const published = (window.SITE_JOURNAL_PUBLISHED || []).map((j) => ({
+        ...j, source: "published", hidden: false,
+        pendingDelete: pendDelete.has(j.id)
+      }));
+
+      const drafts = (await this.getCustom())
+        .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
+        .map((j) => ({ ...j, source: "draft" }));
+
+      return builtins.concat(published, drafts);
+    },
+
+    // 当前展示中的随笔（随笔页用）：默认(未下架) + 已发布(未待删) + 本地草稿
+    async getVisible() {
+      const all = await this.getAllWithHidden();
+      return all.filter((j) => !j.hidden && !j.pendingDelete);
+    },
+
+    async add({ date, title, body }) {
+      const rec = {
+        id: "jcustom-" + Date.now() + "-" + Math.floor(Math.random() * 1e4),
+        date: date || "", title: title || "", body: body || "",
+        createdAt: Date.now()
+      };
+      await txOn(JOUR_STORE, "readwrite", (s) => s.put(rec));
+      return rec;
+    },
+
+    async remove(id) { await txOn(JOUR_STORE, "readwrite", (s) => s.delete(id)); },
+
+    async getOne(id) {
+      const all = await this.getCustom();
+      return all.find((r) => r.id === id) || null;
+    },
+
+    async update(id, { date, title, body }) {
+      const rec = await this.getOne(id);
+      if (!rec) throw new Error("草稿不存在（可能已删除）");
+      rec.date = date || ""; rec.title = title || ""; rec.body = body || "";
+      await txOn(JOUR_STORE, "readwrite", (s) => s.put(rec));
+      return rec;
+    },
+
+    hideBuiltin(id) { removeFrom(JOUR_UNHIDE_KEY, id); addTo(JOUR_HIDDEN_KEY, id); },
+    unhideBuiltin(id) {
+      const localHidden = getList(JOUR_HIDDEN_KEY);
+      if (localHidden.includes(id)) { removeFrom(JOUR_HIDDEN_KEY, id); return; }
+      if (jourHidden().includes(id)) { addTo(JOUR_UNHIDE_KEY, id); }
+    },
+    deletePublished(id) { addTo(JOUR_DELETE_KEY, id); },
+    undoDeletePublished(id) { removeFrom(JOUR_DELETE_KEY, id); },
+
+    getLocalHidden()  { return getList(JOUR_HIDDEN_KEY); },
+    getPendingUnhide() { return getList(JOUR_UNHIDE_KEY); },
+    getPendingDelete() { return getList(JOUR_DELETE_KEY); },
+
+    async pendingCount() {
+      const drafts = await this.getCustom();
+      return drafts.length +
+        getList(JOUR_HIDDEN_KEY).length +
+        getList(JOUR_UNHIDE_KEY).length +
+        getList(JOUR_DELETE_KEY).length;
+    },
+
+    async clearLocalAfterPublish() {
+      const drafts = await this.getCustom();
+      for (const d of drafts) await this.remove(d.id);
+      setList(JOUR_HIDDEN_KEY, []);
+      setList(JOUR_UNHIDE_KEY, []);
+      setList(JOUR_DELETE_KEY, []);
     }
   };
 })();

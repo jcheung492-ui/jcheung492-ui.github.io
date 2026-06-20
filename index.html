@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/site.css?v=20">
+<link rel="stylesheet" href="css/site.css?v=21">
 </head>
 <body class="texture-on">
 
@@ -62,7 +62,7 @@
         </div>
       </div>
       <figure class="portrait-frame">
-        <img class="portrait-img ph-portrait" src="portrait.jpg?v=20" alt="张百星 / Justin" loading="lazy">
+        <img class="portrait-img ph-portrait" src="portrait.jpg?v=21" alt="张百星 / Justin" loading="lazy">
         <figcaption data-text="home.portrait.caption">张百星 / Justin</figcaption>
       </figure>
     </div>
@@ -194,6 +194,26 @@
         <div class="admin-tracklist" id="admin-gallerylist"></div>
       </div>
 
+      <!-- 随笔管理:增删改 Journal 那几篇 -->
+      <div class="admin-journal-section">
+        <h3>随笔（Journal）</h3>
+        <p class="admin-note">写一篇随笔（日期 + 标题 + 正文）。和作品一样先存<strong>本地草稿</strong>，确认后一起点上方<strong>「发布到线上」</strong>。默认那几篇可「下架」。</p>
+        <form class="admin-form" id="journal-form">
+          <label>日期(可选)
+            <input type="text" id="jf-date" placeholder="2026.05.28" autocomplete="off">
+          </label>
+          <label class="full">标题
+            <input type="text" id="jf-title" placeholder="给这篇随笔起个小标题" autocomplete="off">
+          </label>
+          <label class="full">正文
+            <textarea id="jf-body" rows="4" placeholder="想说的话…" autocomplete="off"></textarea>
+          </label>
+          <button type="submit">加入草稿</button>
+        </form>
+        <p class="admin-status" id="journal-status"></p>
+        <div class="admin-tracklist" id="admin-journallist"></div>
+      </div>
+
       <!-- 站点文案管理:首页 / 关于 / 联系等页面的固定文字 -->
       <div class="admin-text-section" id="admin-text-section">
         <h3>站点文案（首页 / 关于 / 联系 …）</h3>
@@ -232,29 +252,7 @@
     </div>
   </div>
   <div class="wrap">
-    <div class="writing-list">
-      <article class="writing-item">
-        <div class="writing-date">2026.05.28</div>
-        <div class="writing-body">
-          <h3>关于加班后的耳朵</h3>
-          <p>混了一整天别人的歌，下班路上反而什么都不想听。可走到楼下，听见有人在练萨克斯，跑调跑得很认真——突然觉得，这才是我最开始喜欢音乐的样子。</p>
-        </div>
-      </article>
-      <article class="writing-item">
-        <div class="writing-date">2026.04.13</div>
-        <div class="writing-body">
-          <h3>雨天适合写桥段</h3>
-          <p>不知道为什么，主歌和副歌都可以在晴天写，但桥段一定要等下雨。可能桥段本来就是歌里那段「说真话」的部分吧。</p>
-        </div>
-      </article>
-      <article class="writing-item">
-        <div class="writing-date">2026.02.07</div>
-        <div class="writing-body">
-          <h3>新年第一首 demo</h3>
-          <p>每年的第一首 demo 都会写得特别小心，像在新本子的第一页写字。今年的第一首还没有名字，但我知道它是写给去年没说出口的那些「谢谢」的。</p>
-        </div>
-      </article>
-    </div>
+    <div class="writing-list" id="writing-list"></div>
 
     <!-- 子模块:光影图廊 -->
     <section class="gallery-block" aria-label="光影">
@@ -290,7 +288,7 @@
   <div class="wrap">
     <div class="about-grid">
       <figure class="portrait-frame" style="transform: rotate(-1deg);">
-        <img class="portrait-img ph-about" src="portrait.jpg?v=20" alt="工作室的某个下午" loading="lazy">
+        <img class="portrait-img ph-about" src="portrait.jpg?v=21" alt="工作室的某个下午" loading="lazy">
         <figcaption data-text="about.portrait.caption">工作室的某个下午</figcaption>
       </figure>
       <div class="about-text">
@@ -394,20 +392,21 @@
 </div>
 
 <!-- ===================== 脚本 ===================== -->
-<script src="js/data.js?v=20"></script>
-<script src="js/published.js?v=20"></script>
-<script src="js/sitetext.js?v=20"></script>
-<script src="js/library.js?v=20"></script>
-<script src="js/publish.js?v=20"></script>
-<script src="js/supabase.js?v=20"></script>
-<script src="js/comments.js?v=20"></script>
-<script src="js/player.js?v=20"></script>
-<script src="js/lyrics.js?v=20"></script>
-<script src="js/admin.js?v=20"></script>
-<script src="js/guestbook.js?v=20"></script>
-<script src="js/gallery.js?v=20"></script>
-<script src="js/router.js?v=20"></script>
-<script src="js/theme.js?v=20"></script>
+<script src="js/data.js?v=21"></script>
+<script src="js/published.js?v=21"></script>
+<script src="js/sitetext.js?v=21"></script>
+<script src="js/library.js?v=21"></script>
+<script src="js/publish.js?v=21"></script>
+<script src="js/supabase.js?v=21"></script>
+<script src="js/comments.js?v=21"></script>
+<script src="js/player.js?v=21"></script>
+<script src="js/lyrics.js?v=21"></script>
+<script src="js/admin.js?v=21"></script>
+<script src="js/guestbook.js?v=21"></script>
+<script src="js/gallery.js?v=21"></script>
+<script src="js/journal.js?v=21"></script>
+<script src="js/router.js?v=21"></script>
+<script src="js/theme.js?v=21"></script>
 
 </body>
 </html>

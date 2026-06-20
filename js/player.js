@@ -31,6 +31,12 @@
     return [t.year, t.role].filter(Boolean).join(" · ");
   }
 
+  // 分类介绍：默认值收归 textLib（管理面板可编辑）；textLib 缺席时退回 data.js 里的 c.intro
+  function catIntro(c) {
+    if (window.textLib) return window.textLib.get("cat." + c.key + ".intro");
+    return c.intro || "";
+  }
+
   // 解析视频来源：本地文件 / B站·YouTube 内嵌 / 其余平台跳转
   //   返回 null 表示这条作品没有视频
   function parseVideo(v) {
@@ -227,7 +233,7 @@
           '<div class="work-cat-head">' +
             '<p class="kicker">' + esc(c.en) + "</p>" +
             '<h2 class="work-cat-title">' + esc(c.label) + "</h2>" +
-            (c.intro ? '<p class="work-cat-intro">' + esc(c.intro) + "</p>" : "") +
+            (catIntro(c) ? '<p class="work-cat-intro">' + esc(catIntro(c)) + "</p>" : "") +
           "</div>" +
           inner +
         "</section>"
@@ -250,7 +256,7 @@
         '<a class="catdetail-back" href="#/works">← 返回作品</a>' +
         '<p class="kicker">' + esc(c.en) + "</p>" +
         '<h1 class="page-title">' + esc(c.label) + "</h1>" +
-        (c.intro ? '<p class="page-sub">' + esc(c.intro) + "</p>" : "");
+        (catIntro(c) ? '<p class="page-sub">' + esc(catIntro(c)) + "</p>" : "");
     }
     host.innerHTML = items.length
       ? listHTML(items)

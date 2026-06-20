@@ -268,6 +268,149 @@
     });
   }
 
+  // ---- 随笔（Journal）：行状态标签 + 操作按钮（与光影同构，纯文本）----
+  function jourRowMeta(j) {
+    if (j.source === "draft") {
+      return { chip: "草稿 · 未发布", cls: "is-draft",
+        btns: '<button data-jact="edit-draft" data-id="' + j.id + '">编辑</button>' +
+              '<button data-jact="del-draft" data-id="' + j.id + '">删除</button>' };
+    }
+    if (j.source === "published") {
+      if (j.pendingDelete) {
+        return { chip: "待删除", cls: "is-pending",
+          btns: '<button data-jact="undo-del" data-id="' + j.id + '">撤销删除</button>' };
+      }
+      return { chip: "已发布", cls: "",
+        btns: '<button data-jact="del-pub" data-id="' + j.id + '">删除</button>' };
+    }
+    if (j.pendingUnhide) {
+      return { chip: "默认 · 待恢复上架", cls: "is-pending",
+        btns: '<button data-jact="hide" data-id="' + j.id + '">撤销恢复</button>' };
+    }
+    if (j.pendingHide) {
+      return { chip: "默认 · 待下架", cls: "is-pending",
+        btns: '<button data-jact="unhide" data-id="' + j.id + '">撤销下架</button>' };
+    }
+    if (j.hidden) {
+      return { chip: "默认 · 已下架", cls: "is-hidden",
+        btns: '<button data-jact="unhide" data-id="' + j.id + '">恢复上架</button>' };
+    }
+    return { chip: "默认", cls: "",
+      btns: '<button data-jact="hide" data-id="' + j.id + '">下架</button>' };
+  }
+
+  async function renderJournalList() {
+    const box = $("#admin-journallist");
+    if (!box || !window.journalLib) return;
+    const all = await window.journalLib.getAllWithHidden();
+    box.innerHTML = all.map((j) => {
+      const m = jourRowMeta(j);
+      const t = (j.date ? j.date + " · " : "") + (j.title || "(无标题)");
+      return (
+        '<div class="admin-row ' + m.cls + '">' +
+          '<span class="ar-title">' + esc(t) + "</span>" +
+          '<span class="ar-kind">' + esc(m.chip) + "</span>" +
+          m.btns +
+        "</div>"
+      );
+    }).join("");
+
+    box.querySelectorAll("button").forEach((b) => {
+      b.addEventListener("click", async () => {
+        const id = b.dataset.id, act = b.dataset.jact;
+        if (act === "edit-draft") { await startJournalEdit(id); return; }
+        if (act === "hide") window.journalLib.hideBuiltin(id);
+        if (act === "unhide") window.journalLib.unhideBuiltin(id);
+        if (act === "del-pub") {
+          if (!confirm("把这篇已发布的随笔标记为删除?(发布后才真正移除)")) return;
+          window.journalLib.deletePublished(id);
+        }
+        if (act === "undo-del") window.journalLib.undoDeletePublished(id);
+        if (act === "del-draft") {
+          if (!confirm("删除这条本地随笔草稿吗?")) return;
+          await window.journalLib.remove(id);
+        }
+        await refreshAll();
+      });
+    });
+  }
+
+  // 当前正在编辑的随笔草稿 id（null = 新增模式）
+  let editingJourId = null;
+
+  async function startJournalEdit(id) {
+    const rec = await window.journalLib.getOne(id);
+    if (!rec) { $("#journal-status").textContent = "草稿不存在（可能已删除）"; return; }
+    editingJourId = id;
+    $("#jf-date").value = rec.date || "";
+    $("#jf-title").value = rec.title || "";
+    $("#jf-body").value = rec.body || "";
+    setJournalEditMode(rec);
+    const form = $("#journal-form");
+    window.scrollTo({ top: form.getBoundingClientRect().top + window.scrollY - 90, behavior: "smooth" });
+  }
+
+  function exitJournalEdit() {
+    editingJourId = null;
+    $("#journal-form").reset();
+    setJournalEditMode(null);
+    $("#journal-status").textContent = "";
+  }
+
+  function setJournalEditMode(rec) {
+    const form = $("#journal-form");
+    const submitBtn = form.querySelector('button[type="submit"]');
+    let banner = $("#jf-editing");
+    if (rec) {
+      submitBtn.textContent = "保存修改";
+      if (!banner) {
+        banner = document.createElement("div");
+        banner.id = "jf-editing";
+        banner.className = "af-editing";
+        form.insertBefore(banner, form.firstChild);
+      }
+      banner.innerHTML =
+        '<span class="afe-label">正在编辑这篇随笔</span>' +
+        '<button type="button" id="jf-cancel-edit">取消编辑</button>';
+      banner.querySelector("#jf-cancel-edit").addEventListener("click", exitJournalEdit);
+    } else {
+      submitBtn.textContent = "加入草稿";
+      if (banner) banner.remove();
+    }
+  }
+
+  function wireJournalForm() {
+    const form = $("#journal-form");
+    if (!form) return;
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const status = $("#journal-status");
+      const date = $("#jf-date").value.trim();
+      const title = $("#jf-title").value.trim();
+      const body = $("#jf-body").value.trim();
+      if (!title && !body) { status.textContent = "至少写个标题或正文"; return; }
+      const editing = editingJourId;
+      status.textContent = editing ? "正在保存修改…" : "正在保存草稿…";
+      try {
+        if (editing) {
+          await window.journalLib.update(editing, { date, title, body });
+          editingJourId = null;
+          form.reset();
+          setJournalEditMode(null);
+          status.textContent = "已保存修改 ✓ —— 确认后点上方「发布到线上」";
+        } else {
+          await window.journalLib.add({ date, title, body });
+          form.reset();
+          status.textContent = "已加入草稿 ✓ —— 确认后点上方「发布到线上」";
+        }
+        setTimeout(() => { status.textContent = ""; }, 4000);
+        await refreshAll();
+      } catch (err) {
+        status.textContent = "保存失败:" + err.message;
+      }
+    });
+  }
+
   // ---- 站点文案编辑器 ----
   // 按分组渲染输入框；改一下即存草稿 + 即时预览。值通过 .value 赋（避免属性转义）。
   function renderTextEditor() {
@@ -440,13 +583,14 @@
     if (!countEl || !btn) return;
     const drafts = await window.musicLib.getCustom();
     const galN = window.galleryLib ? await window.galleryLib.pendingCount() : 0;
+    const jourN = window.journalLib ? await window.journalLib.pendingCount() : 0;
     const orderN = window.musicLib.orderChanged() ? 1 : 0;
     const textN = window.textLib ? window.textLib.pendingCount() : 0;
     const n = drafts.length +
       window.musicLib.getLocalHidden().length +
       window.musicLib.getPendingUnhide().length +
       window.musicLib.getPendingDelete().length +
-      galN + orderN + textN;
+      galN + jourN + orderN + textN;
     const hasToken = window.publisher.hasToken();
     countEl.textContent = n === 0 ? "没有未发布的改动" : ("有 " + n + " 项未发布的改动");
     countEl.classList.toggle("has-changes", n > 0);
@@ -457,10 +601,12 @@
   async function refreshAll() {
     await renderAdminList();
     await renderGalleryList();
+    await renderJournalList();
     renderTextEditor();
     await updatePublishUI();
     if (window.playerApp) await window.playerApp.refresh();
     if (window.galleryApp) await window.galleryApp.render();
+    if (window.journalApp) await window.journalApp.render();
   }
 
   function wireToken() {
@@ -509,6 +655,8 @@
           (res.removed ? ("移除作品 " + res.removed + " 项。") : "") +
           (res.galAdded ? ("新增照片 " + res.galAdded + " 张。") : "") +
           (res.galRemoved ? ("移除照片 " + res.galRemoved + " 张。") : "") +
+          (res.jourAdded ? ("新增随笔 " + res.jourAdded + " 篇。") : "") +
+          (res.jourRemoved ? ("移除随笔 " + res.jourRemoved + " 篇。") : "") +
           (res.reordered ? "已更新展示顺序。" : "") +
           (res.textChanged ? "已更新站点文案。" : "");
         await refreshAll();
@@ -688,6 +836,7 @@
 
     wireForm();
     wireGalleryForm();
+    wireJournalForm();
     wireTextEditor();
     wireToken();
     wirePublish();

@@ -112,16 +112,19 @@
   }
 
   // 生成 published.js 文件内容
-  function buildPublishedJs(published, hidden, galPublished, galHidden, order, siteText) {
+  function buildPublishedJs(published, hidden, galPublished, galHidden, order, siteText, jourPublished, jourHidden) {
     return "// 此文件由「管理面板」自动生成,请勿手改。\n" +
       "// 作品:window.SITE_PUBLISHED / window.SITE_HIDDEN\n" +
       "// 光影:window.SITE_GALLERY_PUBLISHED / window.SITE_GALLERY_HIDDEN\n" +
+      "// 随笔:window.SITE_JOURNAL_PUBLISHED / window.SITE_JOURNAL_HIDDEN\n" +
       "// 顺序:window.SITE_ORDER（作品自定义展示顺序的 id 序列）\n" +
       "// 文案:window.SITE_TEXT（站点文案覆盖,键见 js/sitetext.js）\n" +
       "window.SITE_PUBLISHED = " + JSON.stringify(published, null, 2) + ";\n" +
       "window.SITE_HIDDEN = " + JSON.stringify(hidden, null, 2) + ";\n" +
       "window.SITE_GALLERY_PUBLISHED = " + JSON.stringify(galPublished || [], null, 2) + ";\n" +
       "window.SITE_GALLERY_HIDDEN = " + JSON.stringify(galHidden || [], null, 2) + ";\n" +
+      "window.SITE_JOURNAL_PUBLISHED = " + JSON.stringify(jourPublished || [], null, 2) + ";\n" +
+      "window.SITE_JOURNAL_HIDDEN = " + JSON.stringify(jourHidden || [], null, 2) + ";\n" +
       "window.SITE_ORDER = " + JSON.stringify(order || [], null, 2) + ";\n" +
       "window.SITE_TEXT = " + JSON.stringify(siteText || {}, null, 2) + ";\n";
   }
@@ -159,6 +162,19 @@
     const curGalHidden = Array.isArray(window.SITE_GALLERY_HIDDEN) ? window.SITE_GALLERY_HIDDEN : [];
     const keptGalPublished = curGalPublished.filter((g) => !galPendingDelete.includes(g.id));
     const finalGalHidden = uniq(curGalHidden.concat(galLocalHidden)).filter((id) => !galPendingUnhide.includes(id));
+
+    // ---- 随笔：纯文本，无文件上传 ----
+    const journal = window.journalLib;
+    const jourDrafts = journal ? await journal.getCustom() : [];
+    const jourLocalHidden = journal ? journal.getLocalHidden() : [];
+    const jourPendingUnhide = journal ? journal.getPendingUnhide() : [];
+    const jourPendingDelete = journal ? journal.getPendingDelete() : [];
+    const curJourPublished = Array.isArray(window.SITE_JOURNAL_PUBLISHED) ? window.SITE_JOURNAL_PUBLISHED : [];
+    const curJourHidden = Array.isArray(window.SITE_JOURNAL_HIDDEN) ? window.SITE_JOURNAL_HIDDEN : [];
+    const keptJourPublished = curJourPublished.filter((j) => !jourPendingDelete.includes(j.id));
+    const finalJourHidden = uniq(curJourHidden.concat(jourLocalHidden)).filter((id) => !jourPendingUnhide.includes(id));
+    const newJourEntries = jourDrafts.map((j) => ({ id: j.id, date: j.date || "", title: j.title || "", body: j.body || "" }));
+    const finalJourPublished = keptJourPublished.concat(newJourEntries);
 
     const treeFiles = [];   // {path, base64, size}
     const newEntries = [];
@@ -259,7 +275,7 @@
       ? window.textLib.getMergedForPublish()
       : (window.SITE_TEXT && typeof window.SITE_TEXT === "object" ? window.SITE_TEXT : {});
 
-    const publishedJs = buildPublishedJs(finalPublished, finalHidden, finalGalPublished, finalGalHidden, finalOrder, finalText);
+    const publishedJs = buildPublishedJs(finalPublished, finalHidden, finalGalPublished, finalGalHidden, finalOrder, finalText, finalJourPublished, finalJourHidden);
 
     // 3. Git Data API:base ref -> blobs -> tree -> commit -> 移动 ref
     step("读取仓库当前状态…");
@@ -296,6 +312,8 @@
       (pendingDelete.length ? ("-" + pendingDelete.length + " 作品 ") : "") +
       (newGalEntries.length ? ("+" + newGalEntries.length + " 照片 ") : "") +
       (galPendingDelete.length ? ("-" + galPendingDelete.length + " 照片 ") : "") +
+      (newJourEntries.length ? ("+" + newJourEntries.length + " 随笔 ") : "") +
+      (jourPendingDelete.length ? ("-" + jourPendingDelete.length + " 随笔 ") : "") +
       (reordered ? "↕ 调整展示顺序 " : "") +
       (textChanged ? "✎ 文案 " : "") +
       "（管理面板发布）";
@@ -310,16 +328,20 @@
     window.SITE_HIDDEN = finalHidden;
     window.SITE_GALLERY_PUBLISHED = finalGalPublished;
     window.SITE_GALLERY_HIDDEN = finalGalHidden;
+    window.SITE_JOURNAL_PUBLISHED = finalJourPublished;
+    window.SITE_JOURNAL_HIDDEN = finalJourHidden;
     window.SITE_ORDER = finalOrder;
     window.SITE_TEXT = finalText;
     await window.musicLib.clearLocalAfterPublish();
     if (gallery) await gallery.clearLocalAfterPublish();
+    if (journal) await journal.clearLocalAfterPublish();
     if (window.textLib) window.textLib.clearLocalAfterPublish();
 
     return {
       commit: commit.sha,
       added: newEntries.length, edited: ei, removed: pendingDelete.length,
       galAdded: newGalEntries.length, galRemoved: galPendingDelete.length,
+      jourAdded: newJourEntries.length, jourRemoved: jourPendingDelete.length,
       reordered: reordered, textChanged: textChanged
     };
   }

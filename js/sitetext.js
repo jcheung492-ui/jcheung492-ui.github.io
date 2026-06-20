@@ -82,6 +82,12 @@
     { key: "contact.listen.url", group: "联系页 · 听歌", label: "链接地址(URL)", type: "text", def: "#/works" },
     { key: "contact.listen.sub", group: "联系页 · 听歌", label: "小字", type: "text", def: "也可以换成 QQ 音乐 / B 站 / 小红书" },
 
+    // —— 作品分类介绍（作品页每个分区下的一段说明）——
+    { key: "cat.album.intro", group: "作品分类介绍", label: "专辑", type: "textarea", def: "自己写、自己制作的歌。没有特别想红,只是想把那些说不清的部分,变成可以反复去听的声音。" },
+    { key: "cat.ad.intro", group: "作品分类介绍", label: "广告配乐", type: "textarea", def: "为品牌短片、TVC 写的配乐。讲究的是「不抢画面,又让人记住」。" },
+    { key: "cat.game.intro", group: "作品分类介绍", label: "游戏配乐", type: "textarea", def: "为独立游戏做的氛围与循环音乐。喜欢能陪着玩家待很久、又不腻的那种。" },
+    { key: "cat.film.intro", group: "作品分类介绍", label: "电影", type: "textarea", def: "参与过的影视项目。音源大多归片方所有,这里以海报与一段文字留个念想。" },
+
     // —— 页脚 ——
     { key: "footer.copy", group: "页脚", label: "版权那行", type: "text", def: "© 2026 张百星 Justin · 谢谢你听到这里" }
   ];

@@ -134,16 +134,23 @@ window.SITE_TRACKS = [
   }
 ];
 
-// 分类的展示信息(标题 / 英文 / 介绍语) —— 文案都可直接改
+// 分类的展示信息(标题 / 英文) —— 每个分区的「介绍语」改到管理面板「站点文案」里(键 cat.*.intro,默认值在 js/sitetext.js)
 window.SITE_CATEGORIES = [
-  { key: "album", label: "专辑", en: "Albums",
-    intro: "自己写、自己制作的歌。没有特别想红,只是想把那些说不清的部分,变成可以反复去听的声音。" },
-  { key: "ad", label: "广告配乐", en: "Advertising",
-    intro: "为品牌短片、TVC 写的配乐。讲究的是「不抢画面,又让人记住」。" },
-  { key: "game", label: "游戏配乐", en: "Game Scores",
-    intro: "为独立游戏做的氛围与循环音乐。喜欢能陪着玩家待很久、又不腻的那种。" },
-  { key: "film", label: "电影", en: "Film",
-    intro: "参与过的影视项目。音源大多归片方所有,这里以海报与一段文字留个念想。" }
+  { key: "album", label: "专辑", en: "Albums" },
+  { key: "ad", label: "广告配乐", en: "Advertising" },
+  { key: "game", label: "游戏配乐", en: "Game Scores" },
+  { key: "film", label: "电影", en: "Film" }
+];
+
+// 随笔(Journal)默认 3 篇 —— 管理面板可增删改;发布后存进 SITE_JOURNAL_PUBLISHED
+//   date: 显示日期(随便写,如 2026.05.28);title: 小标题;body: 正文
+window.SITE_JOURNAL = [
+  { id: "j-ears", date: "2026.05.28", title: "关于加班后的耳朵",
+    body: "混了一整天别人的歌，下班路上反而什么都不想听。可走到楼下，听见有人在练萨克斯，跑调跑得很认真——突然觉得，这才是我最开始喜欢音乐的样子。" },
+  { id: "j-rain", date: "2026.04.13", title: "雨天适合写桥段",
+    body: "不知道为什么，主歌和副歌都可以在晴天写，但桥段一定要等下雨。可能桥段本来就是歌里那段「说真话」的部分吧。" },
+  { id: "j-newyear", date: "2026.02.07", title: "新年第一首 demo",
+    body: "每年的第一首 demo 都会写得特别小心，像在新本子的第一页写字。今年的第一首还没有名字，但我知道它是写给去年没说出口的那些「谢谢」的。" }
 ];
 
 // 图廊(Journal 里的「光影」子模块)—— 风景 / 工作照
