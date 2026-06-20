@@ -833,6 +833,74 @@ body.admin-mode .admin-panel { display: block; }
 .admin-journal-section { margin-top: 40px; padding-top: 32px; border-top: 2px solid var(--rule); }
 .writing-empty { color: var(--muted); font-size: 14px; }
 .admin-gallery-section h3 { margin: 0 0 4px; font-size: 18px; }
+
+/* ============================================================
+   图片编辑器弹窗（裁切 / 鸣潮风格封面）
+   ============================================================ */
+.ie-overlay {
+  position: fixed; inset: 0; z-index: 1200;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(20, 16, 13, .58);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  padding: 18px;
+}
+.ie-overlay[hidden] { display: none; }
+.ie-modal {
+  width: min(440px, 96vw); max-height: 94vh; overflow: auto;
+  background: rgba(252, 249, 243, .92);
+  -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, .6); border-radius: 20px;
+  box-shadow: 0 24px 70px rgba(20, 16, 13, .4);
+  padding: 16px 18px 18px;
+}
+body.theme-dark .ie-modal { background: rgba(38, 31, 26, .92); border-color: rgba(255, 255, 255, .12); }
+.ie-tabs { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.ie-tab {
+  font-family: var(--font-serif); font-size: 14px; color: var(--ink-soft);
+  background: none; border: 1px solid var(--rule); border-radius: 999px;
+  padding: 6px 16px; cursor: pointer;
+}
+.ie-tab.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.ie-x {
+  margin-left: auto; background: none; border: none; cursor: pointer;
+  font-size: 17px; color: var(--ink-soft); line-height: 1; padding: 4px 6px;
+}
+.ie-stage {
+  width: 100%; aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden;
+  background: #1b1714; display: flex; align-items: center; justify-content: center;
+}
+.ie-stage canvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+.ie-stage canvas:active { cursor: grabbing; }
+.ie-controls { margin-top: 14px; display: grid; gap: 12px; }
+.ie-row { display: flex; align-items: center; gap: 12px; }
+.ie-lab {
+  flex: 0 0 46px; font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 0.1em; color: var(--ink-soft);
+}
+.ie-row input[type="text"] {
+  flex: 1; font-family: var(--font-serif); font-size: 14.5px; padding: 8px 11px;
+  border: 1px solid var(--rule); background: var(--card); color: var(--ink); outline: none; border-radius: 8px;
+}
+.ie-row input[type="text"]:focus { border-color: var(--accent); }
+.ie-row input[type="range"] { flex: 1; }
+.ie-seg { flex: 1; display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.ie-seg button {
+  font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.04em;
+  background: none; border: 1px solid var(--rule); color: var(--ink-soft);
+  padding: 6px 13px; border-radius: 999px; cursor: pointer;
+}
+.ie-seg button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.ie-hint { font-size: 12px; color: var(--muted); margin: 12px 0 0; line-height: 1.6; }
+.ie-foot { display: flex; gap: 10px; margin-top: 14px; }
+.ie-btn {
+  font-family: var(--font-serif); font-size: 14px; cursor: pointer;
+  border-radius: 999px; padding: 9px 22px; border: 1px solid var(--accent);
+  background: var(--accent); color: #fff;
+}
+.ie-btn:hover { filter: brightness(.93); }
+.ie-btn.ghost { background: none; color: var(--ink-soft); border-color: var(--rule); }
+.ie-btn.ghost:hover { border-color: var(--accent); color: var(--accent); filter: none; }
+.ie-foot .ie-btn[data-act="done"] { margin-left: auto; }
 .admin-row {
   display: flex; align-items: center; gap: 14px;
   padding: 12px 0; border-bottom: 1px solid var(--rule); font-size: 14.5px;

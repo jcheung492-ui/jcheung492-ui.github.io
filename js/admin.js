@@ -411,6 +411,43 @@
     });
   }
 
+  // ---- 传图编辑器接线：选文件后弹「裁切 / 鸣潮风格封面」，产出回填到 input ----
+  function setInputFile(input, blob, name) {
+    const dt = new DataTransfer();
+    dt.items.add(new File([blob], name, { type: blob.type || "image/jpeg" }));
+    input.files = dt.files;
+  }
+  function openEditorFor(input, conf) {
+    const f = input.files[0];
+    if (!f || !/^image\//.test(f.type) || !window.imgEditor) return;
+    window.imgEditor.open(Object.assign({
+      file: f,
+      onDone: (res) => {
+        // res 是处理后的 Blob → 回填;若是原 File(点了「用原图」)则保持不变
+        if (res && res instanceof Blob && !(res instanceof File)) setInputFile(input, res, conf.name || "image.jpg");
+      },
+      onCancel: () => { input.value = ""; }
+    }, conf.open));
+  }
+  function wireImageEditor() {
+    if (!window.imgEditor) return;
+    const cover = $("#af-cover");
+    if (cover) cover.addEventListener("change", () => {
+      openEditorFor(cover, {
+        name: "cover.jpg",
+        open: {
+          mode: "crop", aspect: 1,
+          title: ($("#af-title") ? $("#af-title").value.trim() : ""),
+          subtitle: ($("#af-en") ? $("#af-en").value.trim() : "")
+        }
+      });
+    });
+    const gimg = $("#gf-img");
+    if (gimg) gimg.addEventListener("change", () => {
+      openEditorFor(gimg, { name: "photo.jpg", open: { mode: "crop", aspect: null } });
+    });
+  }
+
   // ---- 站点文案编辑器 ----
   // 按分组渲染输入框；改一下即存草稿 + 即时预览。值通过 .value 赋（避免属性转义）。
   function renderTextEditor() {
@@ -838,6 +875,7 @@
     wireGalleryForm();
     wireJournalForm();
     wireTextEditor();
+    wireImageEditor();
     wireToken();
     wirePublish();
   }
