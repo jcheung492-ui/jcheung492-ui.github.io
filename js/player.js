@@ -154,7 +154,7 @@
           (t.desc ? '<p class="work-desc">' + esc(t.desc) + "</p>" : "") +
           (playable
             ? '<button class="work-listen" type="button" data-i="' + qi + '">' +
-                (playing ? "暂停" : "听") + "</button>"
+                (playing ? "❚❚ 暂停" : "▶ 播放") + "</button>"
             : "") +
           ((t.credits || t.lyrics)
             ? '<button class="work-detail" type="button" data-id="' + esc(t.id) + '">歌词 / 详情</button>'
@@ -313,7 +313,7 @@
       const playBtn = el.querySelector(".work-play");
       if (playBtn) playBtn.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
       const listen = el.querySelector(".work-listen");
-      if (listen) listen.textContent = playing ? "暂停" : "听";
+      if (listen) listen.textContent = playing ? "❚❚ 暂停" : "▶ 播放";
     });
     document.querySelectorAll(".sketch-card[data-i]").forEach((el) => {
       const i = Number(el.dataset.i);
