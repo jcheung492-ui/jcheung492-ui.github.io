@@ -73,7 +73,6 @@
         (pv.platform ? ' data-platform="' + esc(pv.platform) + '"' : "");
       return '<div class="work-videohost"' + dataAttr + '>' + img +
         '<button class="work-videoplay" type="button" aria-label="播放视频">' + ICON_PLAY + '</button>' +
-        (pv.platform ? '<span class="work-videobadge">' + esc(pv.platform) + '</span>' : '') +
         '</div>';
     }
     if (playable) {
@@ -155,7 +154,7 @@
           (t.desc ? '<p class="work-desc">' + esc(t.desc) + "</p>" : "") +
           (playable
             ? '<button class="work-listen" type="button" data-i="' + qi + '">' +
-                (playing ? "❚❚ 暂停" : "▶ 播放") + "</button>"
+                (playing ? "❚❚ 暂停" : "▶ 听听") + "</button>"
             : "") +
           ((t.credits || t.lyrics)
             ? '<button class="work-detail" type="button" data-id="' + esc(t.id) + '">歌词 / 详情</button>'
@@ -314,7 +313,7 @@
       const playBtn = el.querySelector(".work-play");
       if (playBtn) playBtn.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
       const listen = el.querySelector(".work-listen");
-      if (listen) listen.textContent = playing ? "❚❚ 暂停" : "▶ 播放";
+      if (listen) listen.textContent = playing ? "❚❚ 暂停" : "▶ 听听";
     });
     document.querySelectorAll(".sketch-card[data-i]").forEach((el) => {
       const i = Number(el.dataset.i);

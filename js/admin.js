@@ -65,7 +65,7 @@
     }
     return {
       chip: "默认 · " + cat, cls: "",
-      btns: '<button data-act="hide" data-id="' + t.id + '">下架</button>'
+      btns: '<button data-act="hide" data-id="' + t.id + '">删除</button>'
     };
   }
 
@@ -148,7 +148,9 @@
   async function renderAdminList() {
     const box = $("#admin-tracklist");
     if (!box) return;
-    const all = await window.musicLib.getAllWithHidden();
+    // 已下架的默认作品不再灰显占位 —— 直接从列表移除(用户偏好「下架即删除」)
+    const all = (await window.musicLib.getAllWithHidden())
+      .filter((t) => !(t.source === "builtin" && t.hidden));
 
     // 按分类分组（保持各分类内部的现有顺序）；未知分类排到最后
     const cats = ADMIN_CAT_ORDER.slice();
@@ -182,7 +184,10 @@
           await refreshAll();
           return;
         }
-        if (act === "hide") window.musicLib.hideBuiltin(id);
+        if (act === "hide") {
+          if (!confirm("删除这条默认作品吗?(从你的作品列表移除)")) return;
+          window.musicLib.hideBuiltin(id);
+        }
         if (act === "unhide") window.musicLib.unhideBuiltin(id);
         if (act === "del-pub") {
           if (!confirm("把这条已发布作品标记为删除?(发布后才真正移除)")) return;
@@ -229,13 +234,14 @@
         btns: '<button data-gact="unhide" data-id="' + g.id + '">恢复上架</button>' };
     }
     return { chip: "默认", cls: "",
-      btns: '<button data-gact="hide" data-id="' + g.id + '">下架</button>' };
+      btns: '<button data-gact="hide" data-id="' + g.id + '">删除</button>' };
   }
 
   async function renderGalleryList() {
     const box = $("#admin-gallerylist");
     if (!box || !window.galleryLib) return;
-    const all = await window.galleryLib.getAllWithHidden();
+    const all = (await window.galleryLib.getAllWithHidden())
+      .filter((g) => !(g.source === "builtin" && g.hidden));
     box.innerHTML = all.map((g) => {
       const m = galRowMeta(g);
       return (
@@ -252,7 +258,10 @@
       b.addEventListener("click", async () => {
         const id = b.dataset.id, act = b.dataset.gact;
         if (act === "edit-draft") { await startGalEdit(id); return; }
-        if (act === "hide") window.galleryLib.hideBuiltin(id);
+        if (act === "hide") {
+          if (!confirm("删除这张默认照片吗?(从图廊移除)")) return;
+          window.galleryLib.hideBuiltin(id);
+        }
         if (act === "unhide") window.galleryLib.unhideBuiltin(id);
         if (act === "del-pub") {
           if (!confirm("把这张已发布的照片标记为删除?(发布后才真正移除)")) return;
@@ -296,13 +305,14 @@
         btns: '<button data-jact="unhide" data-id="' + j.id + '">恢复上架</button>' };
     }
     return { chip: "默认", cls: "",
-      btns: '<button data-jact="hide" data-id="' + j.id + '">下架</button>' };
+      btns: '<button data-jact="hide" data-id="' + j.id + '">删除</button>' };
   }
 
   async function renderJournalList() {
     const box = $("#admin-journallist");
     if (!box || !window.journalLib) return;
-    const all = await window.journalLib.getAllWithHidden();
+    const all = (await window.journalLib.getAllWithHidden())
+      .filter((j) => !(j.source === "builtin" && j.hidden));
     box.innerHTML = all.map((j) => {
       const m = jourRowMeta(j);
       const t = (j.date ? j.date + " · " : "") + (j.title || "(无标题)");
@@ -319,7 +329,10 @@
       b.addEventListener("click", async () => {
         const id = b.dataset.id, act = b.dataset.jact;
         if (act === "edit-draft") { await startJournalEdit(id); return; }
-        if (act === "hide") window.journalLib.hideBuiltin(id);
+        if (act === "hide") {
+          if (!confirm("删除这篇默认随笔吗?(从随笔列表移除)")) return;
+          window.journalLib.hideBuiltin(id);
+        }
         if (act === "unhide") window.journalLib.unhideBuiltin(id);
         if (act === "del-pub") {
           if (!confirm("把这篇已发布的随笔标记为删除?(发布后才真正移除)")) return;
