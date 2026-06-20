@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/site.css?v=19">
+<link rel="stylesheet" href="css/site.css?v=20">
 </head>
 <body class="texture-on">
 
@@ -44,10 +44,10 @@
   <header class="hero">
     <div class="wrap hero-grid">
       <div>
-        <p class="kicker">Hello, I make music</p>
-        <h1>不用说话。<br>坐一会儿，<br><em>把肩膀慢慢放下来</em>。</h1>
-        <p class="hero-line">我是 Justin，振钧、百星，都是我。可以随便听听，也可以留句话。<em>别急</em>。</p>
-        <div class="hero-roles">
+        <p class="kicker" data-text="home.hero.kicker">Hello, I make music</p>
+        <h1 data-text="home.hero.title">不用说话。<br>坐一会儿，<br><em>把肩膀慢慢放下来</em>。</h1>
+        <p class="hero-line" data-text="home.hero.line">我是 Justin，振钧、百星，都是我。可以随便听听，也可以留句话。<em>别急</em>。</p>
+        <div class="hero-roles" data-text-list="home.hero.roles">
           <span>Producer</span><span>Arranger</span><span>Mixing Engineer</span>
         </div>
         <div class="hero-wave" aria-hidden="true">
@@ -57,13 +57,13 @@
           </svg>
         </div>
         <div class="hero-ctas">
-          <a class="hero-cta" href="#/works"><span class="dot"></span>听听我的作品</a>
-          <a class="hero-cta ghost" href="#/about">关于我</a>
+          <a class="hero-cta" href="#/works"><span class="dot"></span><span data-text="home.hero.cta1">听听我的作品</span></a>
+          <a class="hero-cta ghost" href="#/about" data-text="home.hero.cta2">关于我</a>
         </div>
       </div>
       <figure class="portrait-frame">
-        <img class="portrait-img ph-portrait" src="portrait.jpg?v=19" alt="张百星 / Justin" loading="lazy">
-        <figcaption>张百星 / Justin</figcaption>
+        <img class="portrait-img ph-portrait" src="portrait.jpg?v=20" alt="张百星 / Justin" loading="lazy">
+        <figcaption data-text="home.portrait.caption">张百星 / Justin</figcaption>
       </figure>
     </div>
   </header>
@@ -71,17 +71,17 @@
     <div class="wrap">
       <a class="strip-link" href="#/works">
         <span class="strip-en">Works</span>
-        <span class="strip-cn">专辑、广告与游戏配乐、电影</span>
+        <span class="strip-cn" data-text="home.strip.works">专辑、广告与游戏配乐、电影</span>
         <span class="strip-arrow">→</span>
       </a>
       <a class="strip-link" href="#/journal">
         <span class="strip-en">Journal</span>
-        <span class="strip-cn">生活，和一些没写进歌里的话</span>
+        <span class="strip-cn" data-text="home.strip.journal">生活，和一些没写进歌里的话</span>
         <span class="strip-arrow">→</span>
       </a>
       <a class="strip-link" href="#/guestbook">
         <span class="strip-en">Guestbook</span>
-        <span class="strip-cn">音乐树洞 · 说点什么都行</span>
+        <span class="strip-cn" data-text="home.strip.guestbook">音乐树洞 · 说点什么都行</span>
         <span class="strip-arrow">→</span>
       </a>
     </div>
@@ -92,9 +92,9 @@
 <div class="page" id="page-works" hidden data-screen-label="作品">
   <div class="page-head">
     <div class="wrap">
-      <p class="kicker">Works</p>
-      <h1 class="page-title">作品</h1>
-      <p class="page-sub">专辑、广告配乐、游戏配乐可以直接听；电影部分只放海报与一段文字。</p>
+      <p class="kicker" data-text="works.kicker">Works</p>
+      <h1 class="page-title" data-text="works.title">作品</h1>
+      <p class="page-sub" data-text="works.sub">专辑、广告配乐、游戏配乐可以直接听；电影部分只放海报与一段文字。</p>
     </div>
   </div>
   <div class="wrap">
@@ -193,6 +193,17 @@
         <p class="admin-status" id="gallery-status"></p>
         <div class="admin-tracklist" id="admin-gallerylist"></div>
       </div>
+
+      <!-- 站点文案管理:首页 / 关于 / 联系等页面的固定文字 -->
+      <div class="admin-text-section" id="admin-text-section">
+        <h3>站点文案（首页 / 关于 / 联系 …）</h3>
+        <p class="admin-note">改这里的文字会<strong>即时预览</strong>；和作品一样先存<strong>本地草稿</strong>，确认后点上方<strong>「发布到线上」</strong>一起生效。标了「富文本」的框可用 <code>*斜体*</code>、<code>**加粗**</code>、换行。</p>
+        <div class="atext-toolbar">
+          <button type="button" id="admin-text-reset">撤销本次文案改动</button>
+        </div>
+        <div id="admin-text-fields"></div>
+        <p class="admin-status" id="admin-text-status"></p>
+      </div>
     </div>
   </div>
 </div>
@@ -201,9 +212,9 @@
 <div class="page" id="page-sketches" hidden data-screen-label="随手录">
   <div class="page-head">
     <div class="wrap">
-      <p class="kicker" id="sketches-kicker">Sketchbook</p>
-      <h1 class="page-title" id="sketches-title">灵感草稿</h1>
-      <p class="page-sub" id="sketches-intro">最近的翻唱、路上哼出来的动机、来不及做完的奇思妙想。不是成品,只是不想让它们安静地消失。</p>
+      <p class="kicker" id="sketches-kicker" data-text="sketches.kicker">Sketchbook</p>
+      <h1 class="page-title" id="sketches-title" data-text="sketches.title">灵感草稿</h1>
+      <p class="page-sub" id="sketches-intro" data-text="sketches.intro">最近的翻唱、路上哼出来的动机、来不及做完的奇思妙想。不是成品,只是不想让它们安静地消失。</p>
     </div>
   </div>
   <div class="wrap">
@@ -215,9 +226,9 @@
 <div class="page" id="page-journal" hidden data-screen-label="随笔">
   <div class="page-head">
     <div class="wrap">
-      <p class="kicker">Journal</p>
-      <h1 class="page-title">生活，和一些没写进歌里的话</h1>
-      <p class="page-sub">不定期更新的小随笔。想改、想加,直接编辑这一段的文字就好。</p>
+      <p class="kicker" data-text="journal.kicker">Journal</p>
+      <h1 class="page-title" data-text="journal.title">生活，和一些没写进歌里的话</h1>
+      <p class="page-sub" data-text="journal.sub">不定期更新的小随笔。想改、想加,直接编辑这一段的文字就好。</p>
     </div>
   </div>
   <div class="wrap">
@@ -248,9 +259,9 @@
     <!-- 子模块:光影图廊 -->
     <section class="gallery-block" aria-label="光影">
       <div class="gallery-head">
-        <p class="kicker">Gallery</p>
-        <h2 class="gallery-title">光影</h2>
-        <p class="gallery-sub">一些我觉得好看的风景和工作照。点开任意一张,有一行字。</p>
+        <p class="kicker" data-text="gallery.kicker">Gallery</p>
+        <h2 class="gallery-title" data-text="gallery.title">光影</h2>
+        <p class="gallery-sub" data-text="gallery.sub">一些我觉得好看的风景和工作照。点开任意一张,有一行字。</p>
       </div>
       <div class="gallery-grid" id="gallery-grid"></div>
     </section>
@@ -271,26 +282,26 @@
 <div class="page" id="page-about" hidden data-screen-label="关于">
   <div class="page-head">
     <div class="wrap">
-      <p class="kicker">About</p>
-      <h1 class="page-title">关于我</h1>
-      <p class="page-sub">一个在公司上班的音乐人。</p>
+      <p class="kicker" data-text="about.kicker">About</p>
+      <h1 class="page-title" data-text="about.title">关于我</h1>
+      <p class="page-sub" data-text="about.sub">一个在公司上班的音乐人。</p>
     </div>
   </div>
   <div class="wrap">
     <div class="about-grid">
       <figure class="portrait-frame" style="transform: rotate(-1deg);">
-        <img class="portrait-img ph-about" src="portrait.jpg?v=19" alt="工作室的某个下午" loading="lazy">
-        <figcaption>工作室的某个下午</figcaption>
+        <img class="portrait-img ph-about" src="portrait.jpg?v=20" alt="工作室的某个下午" loading="lazy">
+        <figcaption data-text="about.portrait.caption">工作室的某个下午</figcaption>
       </figure>
       <div class="about-text">
-        <p><strong>张百星（Justin）</strong>，音乐人，制作人。白天在公司做音频相关的工作，是同事眼里「管声音的人」；下班以后继续做音乐，是自己。</p>
-        <p>主要做<strong>编曲、制作和混音</strong>。华语流行、配乐、Ballad——不算固定，也许你可以和我聊聊你喜欢啥？</p>
-        <p>如果你有一首写到一半的歌、一段不知道怎么处理的旋律，或者只是想找人聊聊音乐，都欢迎来找我。我回消息可能慢，但一定会回。</p>
+        <p data-text="about.p1"><strong>张百星（Justin）</strong>，音乐人，制作人。白天在公司做音频相关的工作，是同事眼里「管声音的人」；下班以后继续做音乐，是自己。</p>
+        <p data-text="about.p2">主要做<strong>编曲、制作和混音</strong>。华语流行、配乐、Ballad——不算固定，也许你可以和我聊聊你喜欢啥？</p>
+        <p data-text="about.p3">如果你有一首写到一半的歌、一段不知道怎么处理的旋律，或者只是想找人聊聊音乐，都欢迎来找我。我回消息可能慢，但一定会回。</p>
         <dl class="about-facts">
-          <div class="about-fact"><dt>角色</dt><dd>制作人 / 编曲 / 混音工程师</dd></div>
-          <div class="about-fact"><dt>常驻</dt><dd>中国 · 深圳</dd></div>
-          <div class="about-fact"><dt>合作方式</dt><dd>远程为主,可约线下;先聊歌,再聊别的</dd></div>
-          <div class="about-fact"><dt>最近在做</dt><dd>夏日企划</dd></div>
+          <div class="about-fact"><dt data-text="about.fact1.dt">角色</dt><dd data-text="about.fact1.dd">制作人 / 编曲 / 混音工程师</dd></div>
+          <div class="about-fact"><dt data-text="about.fact2.dt">常驻</dt><dd data-text="about.fact2.dd">中国 · 深圳</dd></div>
+          <div class="about-fact"><dt data-text="about.fact3.dt">合作方式</dt><dd data-text="about.fact3.dd">远程为主,可约线下;先聊歌,再聊别的</dd></div>
+          <div class="about-fact"><dt data-text="about.fact4.dt">最近在做</dt><dd data-text="about.fact4.dd">夏日企划</dd></div>
         </dl>
       </div>
     </div>
@@ -301,9 +312,9 @@
 <div class="page" id="page-guestbook" hidden data-screen-label="留言板">
   <div class="page-head">
     <div class="wrap">
-      <p class="kicker">Guestbook</p>
-      <h1 class="page-title">留言板</h1>
-      <p class="page-sub">路过的话，留个名字、说句话吧。</p>
+      <p class="kicker" data-text="guestbook.kicker">Guestbook</p>
+      <h1 class="page-title" data-text="guestbook.title">留言板</h1>
+      <p class="page-sub" data-text="guestbook.sub">路过的话，留个名字、说句话吧。</p>
     </div>
   </div>
   <div class="wrap">
@@ -325,27 +336,27 @@
 <div class="page" id="page-contact" hidden data-screen-label="联系">
   <div class="page-head">
     <div class="wrap">
-      <p class="kicker">Contact</p>
-      <h1 class="page-title">找到我</h1>
-      <p class="page-sub">关于合作、关于歌，或者只是打个招呼。</p>
+      <p class="kicker" data-text="contact.kicker">Contact</p>
+      <h1 class="page-title" data-text="contact.title">找到我</h1>
+      <p class="page-sub" data-text="contact.sub">关于合作、关于歌，或者只是打个招呼。</p>
     </div>
   </div>
   <div class="wrap">
     <div class="contact-grid">
       <div class="contact-card">
-        <h3>Email</h3>
-        <p><a href="mailto:hello@justinzhang.example">hello@justinzhang.example</a>
-        <span class="sub">最稳妥的方式,24–48 小时内回复</span></p>
+        <h3 data-text="contact.email.label">Email</h3>
+        <p><a href="mailto:hello@justinzhang.example" data-text="contact.email.value" data-href-key="contact.email.value" data-href-prefix="mailto:">hello@justinzhang.example</a>
+        <span class="sub" data-text="contact.email.sub">最稳妥的方式,24–48 小时内回复</span></p>
       </div>
       <div class="contact-card">
-        <h3>微信</h3>
-        <p>justin_bx(改成你的)
-        <span class="sub">加好友时备注「音乐」会更快通过</span></p>
+        <h3 data-text="contact.wechat.label">微信</h3>
+        <p><span data-text="contact.wechat.value">justin_bx(改成你的)</span>
+        <span class="sub" data-text="contact.wechat.sub">加好友时备注「音乐」会更快通过</span></p>
       </div>
       <div class="contact-card">
-        <h3>听我的歌</h3>
-        <p><a href="#/works">网易云音乐 · 待填链接</a>
-        <span class="sub">也可以换成 QQ 音乐 / B 站 / 小红书</span></p>
+        <h3 data-text="contact.listen.label">听我的歌</h3>
+        <p><a href="#/works" data-text="contact.listen.text" data-href-key="contact.listen.url">网易云音乐 · 待填链接</a>
+        <span class="sub" data-text="contact.listen.sub">也可以换成 QQ 音乐 / B 站 / 小红书</span></p>
       </div>
     </div>
   </div>
@@ -356,7 +367,7 @@
 <!-- ===================== 页脚 ===================== -->
 <footer data-screen-label="页脚">
   <div class="wrap">
-    <span class="foot-copy">© 2026 张百星 Justin · 谢谢你听到这里</span>
+    <span class="foot-copy" data-text="footer.copy">© 2026 张百星 Justin · 谢谢你听到这里</span>
     <button class="admin-link" id="admin-toggle" type="button" hidden>⚙ 管理</button>
   </div>
 </footer>
@@ -383,19 +394,20 @@
 </div>
 
 <!-- ===================== 脚本 ===================== -->
-<script src="js/data.js?v=19"></script>
-<script src="js/published.js?v=19"></script>
-<script src="js/library.js?v=19"></script>
-<script src="js/publish.js?v=19"></script>
-<script src="js/supabase.js?v=19"></script>
-<script src="js/comments.js?v=19"></script>
-<script src="js/player.js?v=19"></script>
-<script src="js/lyrics.js?v=19"></script>
-<script src="js/admin.js?v=19"></script>
-<script src="js/guestbook.js?v=19"></script>
-<script src="js/gallery.js?v=19"></script>
-<script src="js/router.js?v=19"></script>
-<script src="js/theme.js?v=19"></script>
+<script src="js/data.js?v=20"></script>
+<script src="js/published.js?v=20"></script>
+<script src="js/sitetext.js?v=20"></script>
+<script src="js/library.js?v=20"></script>
+<script src="js/publish.js?v=20"></script>
+<script src="js/supabase.js?v=20"></script>
+<script src="js/comments.js?v=20"></script>
+<script src="js/player.js?v=20"></script>
+<script src="js/lyrics.js?v=20"></script>
+<script src="js/admin.js?v=20"></script>
+<script src="js/guestbook.js?v=20"></script>
+<script src="js/gallery.js?v=20"></script>
+<script src="js/router.js?v=20"></script>
+<script src="js/theme.js?v=20"></script>
 
 </body>
 </html>

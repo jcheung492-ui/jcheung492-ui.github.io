@@ -268,6 +268,63 @@
     });
   }
 
+  // ---- 站点文案编辑器 ----
+  // 按分组渲染输入框；改一下即存草稿 + 即时预览。值通过 .value 赋（避免属性转义）。
+  function renderTextEditor() {
+    const box = $("#admin-text-fields");
+    if (!box || !window.textLib) return;
+    const groups = window.textLib.fieldGroups();
+    box.innerHTML = groups.map((g) => {
+      const rows = g.fields.map((f) => {
+        const ctrl = f.type === "textarea"
+          ? '<textarea data-textkey="' + esc(f.key) + '" rows="' + (f.rich ? 3 : 2) + '"></textarea>'
+          : '<input type="text" data-textkey="' + esc(f.key) + '">';
+        return (
+          '<label class="atext-field' + (f.rich ? " is-rich" : "") + '">' +
+            '<span class="atf-label">' + esc(f.label) +
+              (f.rich ? '<em class="atf-rich">富文本</em>' : "") + "</span>" +
+            ctrl +
+          "</label>"
+        );
+      }).join("");
+      return (
+        '<div class="atext-group">' +
+          '<p class="atext-head">' + esc(g.group) + "</p>" +
+          '<div class="atext-rows">' + rows + "</div>" +
+        "</div>"
+      );
+    }).join("");
+
+    box.querySelectorAll("[data-textkey]").forEach((el) => {
+      el.value = window.textLib.get(el.dataset.textkey);
+      el.addEventListener("input", async () => {
+        window.textLib.setDraft(el.dataset.textkey, el.value);
+        window.textLib.render();
+        await updatePublishUI();
+      });
+    });
+  }
+
+  function wireTextEditor() {
+    const reset = $("#admin-text-reset");
+    if (reset) {
+      reset.addEventListener("click", async () => {
+        if (!window.textLib || window.textLib.pendingCount() === 0) {
+          $("#admin-text-status").textContent = "没有未发布的文案改动。";
+          setTimeout(() => { $("#admin-text-status").textContent = ""; }, 2500);
+          return;
+        }
+        if (!confirm("撤销本次所有未发布的文案改动吗?(已发布的不受影响)")) return;
+        window.textLib.clearLocalAfterPublish();   // 清掉本地文案草稿
+        window.textLib.render();
+        renderTextEditor();
+        await updatePublishUI();
+        $("#admin-text-status").textContent = "已撤销未发布的文案改动 ✓";
+        setTimeout(() => { $("#admin-text-status").textContent = ""; }, 3000);
+      });
+    }
+  }
+
   // 当前正在编辑的照片草稿 id（null = 新增模式）
   let editingGalId = null;
 
@@ -384,11 +441,12 @@
     const drafts = await window.musicLib.getCustom();
     const galN = window.galleryLib ? await window.galleryLib.pendingCount() : 0;
     const orderN = window.musicLib.orderChanged() ? 1 : 0;
+    const textN = window.textLib ? window.textLib.pendingCount() : 0;
     const n = drafts.length +
       window.musicLib.getLocalHidden().length +
       window.musicLib.getPendingUnhide().length +
       window.musicLib.getPendingDelete().length +
-      galN + orderN;
+      galN + orderN + textN;
     const hasToken = window.publisher.hasToken();
     countEl.textContent = n === 0 ? "没有未发布的改动" : ("有 " + n + " 项未发布的改动");
     countEl.classList.toggle("has-changes", n > 0);
@@ -399,6 +457,7 @@
   async function refreshAll() {
     await renderAdminList();
     await renderGalleryList();
+    renderTextEditor();
     await updatePublishUI();
     if (window.playerApp) await window.playerApp.refresh();
     if (window.galleryApp) await window.galleryApp.render();
@@ -450,7 +509,8 @@
           (res.removed ? ("移除作品 " + res.removed + " 项。") : "") +
           (res.galAdded ? ("新增照片 " + res.galAdded + " 张。") : "") +
           (res.galRemoved ? ("移除照片 " + res.galRemoved + " 张。") : "") +
-          (res.reordered ? "已更新展示顺序。" : "");
+          (res.reordered ? "已更新展示顺序。" : "") +
+          (res.textChanged ? "已更新站点文案。" : "");
         await refreshAll();
       } catch (err) {
         status.textContent = "✗ 发布失败:" + err.message;
@@ -628,6 +688,7 @@
 
     wireForm();
     wireGalleryForm();
+    wireTextEditor();
     wireToken();
     wirePublish();
   }

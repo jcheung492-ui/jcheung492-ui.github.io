@@ -112,16 +112,18 @@
   }
 
   // 生成 published.js 文件内容
-  function buildPublishedJs(published, hidden, galPublished, galHidden, order) {
+  function buildPublishedJs(published, hidden, galPublished, galHidden, order, siteText) {
     return "// 此文件由「管理面板」自动生成,请勿手改。\n" +
       "// 作品:window.SITE_PUBLISHED / window.SITE_HIDDEN\n" +
       "// 光影:window.SITE_GALLERY_PUBLISHED / window.SITE_GALLERY_HIDDEN\n" +
       "// 顺序:window.SITE_ORDER（作品自定义展示顺序的 id 序列）\n" +
+      "// 文案:window.SITE_TEXT（站点文案覆盖,键见 js/sitetext.js）\n" +
       "window.SITE_PUBLISHED = " + JSON.stringify(published, null, 2) + ";\n" +
       "window.SITE_HIDDEN = " + JSON.stringify(hidden, null, 2) + ";\n" +
       "window.SITE_GALLERY_PUBLISHED = " + JSON.stringify(galPublished || [], null, 2) + ";\n" +
       "window.SITE_GALLERY_HIDDEN = " + JSON.stringify(galHidden || [], null, 2) + ";\n" +
-      "window.SITE_ORDER = " + JSON.stringify(order || [], null, 2) + ";\n";
+      "window.SITE_ORDER = " + JSON.stringify(order || [], null, 2) + ";\n" +
+      "window.SITE_TEXT = " + JSON.stringify(siteText || {}, null, 2) + ";\n";
   }
 
   function uniq(arr) { return Array.from(new Set(arr)); }
@@ -251,7 +253,13 @@
     );
     const finalOrder = uniq(baseOrder.filter((id) => validIds.has(id)));
 
-    const publishedJs = buildPublishedJs(finalPublished, finalHidden, finalGalPublished, finalGalHidden, finalOrder);
+    // ---- 站点文案：线上覆盖 ⊕ 草稿（只存与默认不同的键）----
+    const textChanged = !!(window.textLib && window.textLib.pendingCount() > 0);
+    const finalText = window.textLib
+      ? window.textLib.getMergedForPublish()
+      : (window.SITE_TEXT && typeof window.SITE_TEXT === "object" ? window.SITE_TEXT : {});
+
+    const publishedJs = buildPublishedJs(finalPublished, finalHidden, finalGalPublished, finalGalHidden, finalOrder, finalText);
 
     // 3. Git Data API:base ref -> blobs -> tree -> commit -> 移动 ref
     step("读取仓库当前状态…");
@@ -289,6 +297,7 @@
       (newGalEntries.length ? ("+" + newGalEntries.length + " 照片 ") : "") +
       (galPendingDelete.length ? ("-" + galPendingDelete.length + " 照片 ") : "") +
       (reordered ? "↕ 调整展示顺序 " : "") +
+      (textChanged ? "✎ 文案 " : "") +
       "（管理面板发布）";
     const commit = await gh("/git/commits", "POST", {
       message: msg.trim(), tree: newTree.sha, parents: [baseSha]
@@ -302,14 +311,16 @@
     window.SITE_GALLERY_PUBLISHED = finalGalPublished;
     window.SITE_GALLERY_HIDDEN = finalGalHidden;
     window.SITE_ORDER = finalOrder;
+    window.SITE_TEXT = finalText;
     await window.musicLib.clearLocalAfterPublish();
     if (gallery) await gallery.clearLocalAfterPublish();
+    if (window.textLib) window.textLib.clearLocalAfterPublish();
 
     return {
       commit: commit.sha,
       added: newEntries.length, edited: ei, removed: pendingDelete.length,
       galAdded: newGalEntries.length, galRemoved: galPendingDelete.length,
-      reordered: reordered
+      reordered: reordered, textChanged: textChanged
     };
   }
 
