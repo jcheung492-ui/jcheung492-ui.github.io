@@ -1220,12 +1220,28 @@ body.theme-dark .gallery-cell {
    列表 / 面板的播放按钮也改玻璃质感
    ============================================================ */
 .player-inner { display: flex; align-items: center; gap: 16px; }
-.pb-prev, .pb-next, .pb-time, .pb-eq { display: none; }   /* 极简：藏掉上一首/下一首/时间/律动 */
+.pb-time { display: none; }   /* 极简：仍藏掉时间，律动条找回来 */
 .pb-cover { order: 0; width: 50px; height: 50px; border-radius: 12px; }
 .pb-main { order: 1; flex: 1; gap: 9px; }
-.pb-title-row { gap: 0; }
+.pb-title-row { gap: 0; align-items: center; }
 .pb-title { font-family: var(--font-serif); font-size: 18px; font-weight: 600; }
-.pb-controls { order: 3; }   /* 只剩播放键，移到最右 */
+/* 标题旁的律动条：播放时跳动，更圆更俏皮 */
+.pb-eq { margin-left: 12px; width: 22px; height: 16px; flex: none; }
+.pb-eq i { width: 3.5px; border-radius: 999px; }
+
+/* 传输控制：prev · play · next 合成一颗液态玻璃胶囊（强化玻璃感）*/
+.pb-controls {
+  order: 3; gap: 4px; padding: 5px;
+  border-radius: 999px;
+  background: linear-gradient(155deg, rgba(255, 255, 255, .62), rgba(255, 255, 255, .22));
+  border: 1px solid rgba(255, 255, 255, .65);
+  -webkit-backdrop-filter: blur(14px) saturate(1.7);
+  backdrop-filter: blur(14px) saturate(1.7);
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, .9),
+    inset 0 -2px 4px rgba(255, 255, 255, .3),
+    0 8px 22px rgba(60, 40, 24, .14);
+}
 .pb-play {
   width: 46px; height: 46px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .5);
   background: rgba(255, 255, 255, .5);
@@ -1234,6 +1250,25 @@ body.theme-dark .gallery-cell {
 .pb-play svg { fill: var(--ink); }
 .pb-play:hover { background: var(--accent); border-color: var(--accent); }
 .pb-play:hover svg { fill: #fff; }
+
+/* 上一首 / 下一首：圆形幽灵键，悬停浮出玻璃底 + 朝各自方向轻滑 */
+.pb-prev, .pb-next {
+  width: 36px; height: 36px; border-radius: 50%;
+  color: var(--muted);
+  transition: color .2s ease, background .2s ease,
+              transform .32s cubic-bezier(.34, 1.56, .64, 1);
+}
+.pb-prev svg, .pb-next svg { width: 13px; height: 13px; }
+.pb-prev:hover, .pb-next:hover {
+  color: var(--accent);
+  background: rgba(255, 255, 255, .62);
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+.pb-prev:hover { transform: translateX(-5px); }
+.pb-next:hover { transform: translateX(5px); }
+.pb-prev:active { transform: translateX(-9px) scale(.84); }
+.pb-next:active { transform: translateX(9px) scale(.84); }
+
 .pb-close { order: 4; align-self: center; opacity: .45; }
 .pb-close:hover { opacity: 1; }
 /* 进度条加粗圆润 */
@@ -1243,6 +1278,12 @@ body.theme-dark .gallery-cell {
 .pb-seek::-moz-range-progress { height: 6px; border-radius: 3px; }
 body.theme-dark .pb-play { background: rgba(255, 255, 255, .14); border-color: rgba(255, 255, 255, .2); }
 body.theme-dark .pb-play svg { fill: #f4eee5; }
+body.theme-dark .pb-controls {
+  background: linear-gradient(155deg, rgba(255, 255, 255, .14), rgba(255, 255, 255, .04));
+  border-color: rgba(255, 255, 255, .18);
+  box-shadow: inset 0 1.5px 1px rgba(255, 255, 255, .16), 0 8px 22px rgba(0, 0, 0, .35);
+}
+body.theme-dark .pb-prev:hover, body.theme-dark .pb-next:hover { background: rgba(255, 255, 255, .16); }
 
 /* 列表「播放」按钮 + 面板播放键：玻璃质感 */
 .work-listen {
