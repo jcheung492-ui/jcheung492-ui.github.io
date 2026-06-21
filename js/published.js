@@ -15,7 +15,7 @@ window.SITE_PUBLISHED = [
     "desc": "时间是多维的平铺 moment是这一刻的散落 ，一个个拾起成了耳边的轰鸣 ，一个个缠绕系结成了面 如果那些时刻都不曾感受和记得 ，那现在的我 ，又是从哪刻才能开始降落",
     "cover": "covers/up-1781450578485-7909.jpg",
     "src": "audio/up-1781450578485-7909.mp3",
-    "credits": "作词：Andystoy\n作曲：Andystoy\n演唱：Andystoy\n制作人：Andystoy\n编曲Arranger：张百星 / M!NA / Red Air(张晖凯)\n和声编写 Backing Vocals：Kee@1ntheroom\n弦乐编写Strings Arrangement：蔡曜宇Shuon Tsai\n弦乐监制：蔡曜宇Shuon Tsai / Andystoy / 张百星\n键盘Keybord：张百星\n贝斯 Bass：张百星\n弦乐Strings：曜爆甘音乐工作室 Just Busy Music Studio\n大提琴独奏 Cello Solo：刘涵隐分子Hang Liu\n第一小提琴Violin I：沈羿彣Yi-Wen Shen / 駱思云SsuYun Lo\n第二小提琴Violin II：陈奕勇YiYung Chen / 黄雨柔Nala Huang\n中提琴 Viola：潘自琦Tzu-Chi Pan / 牟启东Wayne Mau\n大提琴Cello：刘涵隐分子Hang Liu / 叶欲新Shin Yeh\n弦乐录音师Recording Engineer ( Strings)：林尚伯 Shang Po Lin\n弦乐助理录音师 Assistant Engineer：朱品豪 PinHao Ju\n技术支持Technical Support：徐振程 Jason Hsu\n弦乐录音室Recording Studio ( Strings)：玉成戏院录音室（台北）YuChen Cinema Studio\n人声录音师Recording Engineer ( Vocals)：张百星\n音频编辑Audio Edit：Andystoy\n录音室Recording Studio (Vocals)：33 Studio /WaveSoundLab\n混音&母带 Mixing & Mastering：李海\n混音助理 Mixing assistant：裴东文 / 华天泽\n统筹Overall planning：刘璐沫涵\n封面设计：Andystoy / kkno\n特别鸣谢：吕莹娜 / 郑翰文 / 李天阳\n总企划Total planning：郑翰文\n出品：中视鸣达",
+    "credits": "作词：Andystoy\n作曲：Andystoy\n演唱：Andystoy\n制作人：Andystoy\n编曲：张百星\n键盘：张百星\n贝斯：张百星\n弦乐：曜爆甘音乐工作室 Just Busy Music Studio\n人声录音师：张百星\n录音室：33 Studio /WaveSoundLab\n混音&母带：李海\n总企划：郑翰文\n出品：中视鸣达",
     "lyrics": "[00:01.00]\n[00:34.66]海边的傍晚\n[00:38.55]我坐在沙滩\n[00:43.73]看着左边的人\n[00:48.81]跑得缓慢\n[00:54.83]长椅上的人\n[00:59.11]书翻到几页\n[01:04.51]树下的落叶\n[01:09.52]没有人去捡\n[01:14.83]沙发上的凹陷\n[01:20.16]全都是记忆堆叠\n[01:25.19]书边的照片\n[01:30.23]怎么全都消失不见\n[01:35.32]我看见 你的脸\n[01:38.21]昏暗中 只剩下\n[01:40.81]眼睛里 反光的白点\n[01:45.88]不用描写 缠绕的细线\n[01:50.94]是它们汇成的焦点\n[01:56.17]我看见 你的脸\n[01:58.66]在眼前 只不过\n[02:01.25]是梦里 偶然的出现\n[02:06.46]落灰的空缺 无人的房间\n[02:11.48]只剩我\n[02:15.76]再看一眼\n[02:39.82]沙发上的凹陷\n[02:44.95]全都是记忆堆叠\n[02:50.20]书边的照片\n[02:55.44]怎么全都消失不见\n[03:00.45]我看见 你的脸\n[03:03.08]昏暗中 只剩下\n[03:05.72]眼睛里 反光的白点\n[03:10.84]不用描写 缠绕的细线\n[03:15.65]是它们汇成的焦点\n[03:20.99]我看见 你的脸\n[03:23.86]在眼前 只不过\n[03:26.18]是梦里 偶然的出现\n[03:31.19]落灰的空缺 无人的房间\n[03:36.82]只剩我\n[03:43.74]海边的傍晚\n[03:47.90]我坐在沙滩\n[03:53.65]看着左边的人"
   },
   {
@@ -259,5 +259,15 @@ window.SITE_TEXT = {
   "cat.album.intro": "听听看我做过啥",
   "footer.copy": "© 2026 张百星 Justin · 谢谢你看到这里",
   "home.hero.line": "Justin，振钧、百星，都是我。可以随便听听，也可以留句话。*不急*。",
-  "home.strip.journal": "总会有些感悟的吧"
+  "home.strip.journal": "总会有些感悟的吧",
+  "contact.email.value": "justincheungmusic@163.com",
+  "contact.email.sub": "24–48 小时内回复",
+  "contact.wechat.sub": "欢迎闲聊，更欢迎工作邀约",
+  "contact.listen.text": "https://163cn.tv/9uu55rO",
+  "contact.listen.label": "平台听听我作品",
+  "contact.listen.sub": "",
+  "cat.ad.intro": "为品牌短片、TVC 写的配乐。",
+  "cat.game.intro": "为独立游戏做的音乐。",
+  "cat.film.intro": "参与过的影视项目。",
+  "works.sub": "专辑、广告配乐、游戏配乐可以直接听；还是做了些作品的"
 };
