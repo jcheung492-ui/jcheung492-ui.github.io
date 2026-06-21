@@ -1,6 +1,9 @@
 // 此文件由「管理面板」自动生成,请勿手改。
 // 作品:window.SITE_PUBLISHED / window.SITE_HIDDEN
 // 光影:window.SITE_GALLERY_PUBLISHED / window.SITE_GALLERY_HIDDEN
+// 随笔:window.SITE_JOURNAL_PUBLISHED / window.SITE_JOURNAL_HIDDEN
+// 顺序:window.SITE_ORDER（作品自定义展示顺序的 id 序列）
+// 文案:window.SITE_TEXT（站点文案覆盖,键见 js/sitetext.js）
 window.SITE_PUBLISHED = [
   {
     "id": "custom-1781450578485-7909",
@@ -11,7 +14,9 @@ window.SITE_PUBLISHED = [
     "role": "制作人/编曲/混音",
     "desc": "时间是多维的平铺 moment是这一刻的散落 ，一个个拾起成了耳边的轰鸣 ，一个个缠绕系结成了面 如果那些时刻都不曾感受和记得 ，那现在的我 ，又是从哪刻才能开始降落",
     "cover": "covers/up-1781450578485-7909.jpg",
-    "src": "audio/up-1781450578485-7909.mp3"
+    "src": "audio/up-1781450578485-7909.mp3",
+    "credits": "作词：andystoy\n作曲：andystoy\n制作人：andystoy\n录音：张百星\n混音：张百星\n版权：中视鸣达",
+    "lyrics": "[00:00.01]moment\n[00:02.00]海边的傍晚\n[00:03.01]我坐在沙滩\n[00:04.01]看着左边的人"
   },
   {
     "id": "custom-1781494192844-943",
@@ -165,6 +170,17 @@ window.SITE_PUBLISHED = [
     "desc": "春天宜听Freedan演绎不一样的《苏州河》",
     "cover": "covers/up-1781781386745-7480.jpg",
     "src": "audio/up-1781781386745-7480.mp3"
+  },
+  {
+    "id": "custom-1782014400471-3970",
+    "category": "album",
+    "title": "无人回应",
+    "en": "",
+    "year": "2022",
+    "role": "母带处理",
+    "desc": "",
+    "cover": "covers/up-1782014400471-3970.jpg",
+    "src": "audio/up-1782014400471-3970.mp3"
   }
 ];
 window.SITE_HIDDEN = [
@@ -191,3 +207,55 @@ window.SITE_HIDDEN = [
 ];
 window.SITE_GALLERY_PUBLISHED = [];
 window.SITE_GALLERY_HIDDEN = [];
+window.SITE_JOURNAL_PUBLISHED = [
+  {
+    "id": "jcustom-1781928768242-4697",
+    "date": "2026.06.22",
+    "title": "关于这个领地的诞生",
+    "body": "做了好久，终于出现了"
+  }
+];
+window.SITE_JOURNAL_HIDDEN = [];
+window.SITE_ORDER = [
+  "builtin-morning-mist",
+  "builtin-after-rain",
+  "builtin-album-seaside",
+  "builtin-album-tenyears",
+  "builtin-album-spring",
+  "builtin-late-bus-home",
+  "builtin-ad-summer",
+  "builtin-ad-run",
+  "builtin-ad-home",
+  "builtin-pixel-dawn",
+  "builtin-game-forest",
+  "builtin-game-star",
+  "builtin-game-dusk",
+  "builtin-old-town",
+  "builtin-last-summer",
+  "builtin-film-confession",
+  "builtin-film-migrant",
+  "builtin-sketch-late-cover",
+  "builtin-sketch-three-chords",
+  "builtin-sketch-subway",
+  "custom-1781771057113-9254",
+  "custom-1781450578485-7909",
+  "custom-1781494192844-943",
+  "custom-1781663038890-428",
+  "custom-1781772281470-9335",
+  "custom-1781772674272-179",
+  "custom-1781773097053-7125",
+  "custom-1781774095748-2457",
+  "custom-1781773418647-5642",
+  "custom-1781779642107-3714",
+  "custom-1781780004618-3282",
+  "custom-1781780247836-2413",
+  "custom-1781780404690-3081",
+  "custom-1781780900218-5177",
+  "custom-1781781386745-7480"
+];
+window.SITE_TEXT = {
+  "home.hero.title": "憋说话。\n坐一会儿，\n*把肩膀慢慢放下来*。",
+  "contact.wechat.value": "Lunamar_",
+  "cat.album.intro": "听听看我做过啥",
+  "footer.copy": "© 2026 张百星 Justin · 谢谢你看到这里"
+};
