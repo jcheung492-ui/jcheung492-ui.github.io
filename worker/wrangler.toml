@@ -1,0 +1,15 @@
+name = "justin-upload"
+main = "src/index.js"
+compatibility_date = "2026-06-21"
+
+# R2 桶绑定：代码里用 env.MEDIA 访问，对应你建好的桶 justin-media
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "justin-media"
+
+# 公开读取地址（r2.dev），仅用于上传成功后回传完整 URL。结尾不带斜杠。
+[vars]
+PUBLIC_BASE = "https://pub-22e48f3da3c74cabbfdd79aec53da6ad.r2.dev"
+
+# UPLOAD_TOKEN 是密钥，不写在这里。用命令设置：
+#   wrangler secret put UPLOAD_TOKEN

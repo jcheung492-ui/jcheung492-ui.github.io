@@ -1,10 +1,14 @@
 .DS_Store
 *.log
 
+# wrangler 本地缓存（含 Cloudflare 账号 ID，不进仓库）
+worker/.wrangler/
+
 # 开发辅助文件,不进公开仓库
 memory.md
 _font-preview/
 如何获取GitHub-Token.md
+R2迁移操作手册.md
 supabase建表.sql
 
 # 液态玻璃视觉验证沙盒（本地用，不上线）

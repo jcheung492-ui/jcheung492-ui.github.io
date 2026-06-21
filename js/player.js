@@ -116,7 +116,7 @@
       media = '<iframe src="' + opts.embed + sep + 'autoplay=1" ' +
         'allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen scrolling="no" frameborder="0"></iframe>';
     } else if (opts.file) {
-      media = '<video src="' + opts.file + '" controls autoplay playsinline></video>';
+      media = '<video src="' + window.resolveMedia(opts.file) + '" controls autoplay playsinline></video>';
     }
     vstage.innerHTML = media;
     vbox.querySelector("#vlb-title").textContent = opts.title || "";
@@ -357,7 +357,7 @@
   function playAt(i) {
     if (!queue[i]) return;
     index = i;
-    audio.src = queue[i].src;
+    audio.src = window.resolveMedia(queue[i].src);
     audio.load();
     audio.play().catch(() => {});
     updateCardStates(); updateBar();

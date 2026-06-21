@@ -7,12 +7,21 @@
 (function () {
   const TOKEN_KEY = "bx-gh-token";
   const REPO_KEY = "bx-gh-repo";
+  const UPLOAD_TOKEN_KEY = "bx-upload-token";   // R2 上传 Worker 的上传密码
   const DEFAULT_REPO = { owner: "jcheung492-ui", repo: "jcheung492-ui.github.io", branch: "master" };
 
   function getToken() { return (localStorage.getItem(TOKEN_KEY) || "").trim(); }
   function setToken(t) { localStorage.setItem(TOKEN_KEY, (t || "").trim()); }
   function clearToken() { localStorage.removeItem(TOKEN_KEY); }
   function hasToken() { return !!getToken(); }
+
+  // R2 上传密码（对应 Worker 的 UPLOAD_TOKEN，只存浏览器）
+  function getUploadToken() { return (localStorage.getItem(UPLOAD_TOKEN_KEY) || "").trim(); }
+  function setUploadToken(t) { localStorage.setItem(UPLOAD_TOKEN_KEY, (t || "").trim()); }
+  function clearUploadToken() { localStorage.removeItem(UPLOAD_TOKEN_KEY); }
+  function hasUploadToken() { return !!getUploadToken(); }
+  // 是否走 R2：MEDIA_BASE + Worker 地址都配齐才算开启（任一为空即回退到 git）
+  function r2Enabled() { return !!(window.MEDIA_BASE && window.MEDIA_UPLOAD_URL); }
 
   function getRepo() {
     try { return Object.assign({}, DEFAULT_REPO, JSON.parse(localStorage.getItem(REPO_KEY) || "{}")); }
@@ -82,6 +91,48 @@
     throw lastErr;
   }
 
+  // ---- 上传一个 blob 到 R2（经 Worker 中转，带超时 + 重试）----
+  //   key 形如 "audio/up-xxx.mp3"；返回 Worker 的 JSON（含 url）。
+  async function uploadToR2(blob, key, onRetry) {
+    const token = getUploadToken();
+    if (!token) throw new Error("还没有设置上传密码。请先在面板「设置上传密码」里填好并保存。");
+    const url = String(window.MEDIA_UPLOAD_URL).replace(/\/+$/, "") + "/upload";
+    const mb = (blob.size || 0) / 1048576;
+    const timeoutMs = Math.max(60000, Math.ceil(mb) * 20000);   // 每 MB 给 20s，至少 60s
+    let lastErr;
+    for (let attempt = 0; attempt <= 3; attempt++) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+      let res;
+      try {
+        res = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + token,
+            "X-Upload-Key": key,
+            "Content-Type": blob.type || "application/octet-stream"
+          },
+          body: blob,
+          signal: ctrl.signal
+        });
+      } catch (e) {
+        clearTimeout(timer);
+        // 网络中断 / 超时 → 可重试
+        lastErr = new Error(e && e.name === "AbortError" ? "上传超时（网络太慢或文件过大）" : "网络连接中断");
+        if (attempt < 3) { if (onRetry) onRetry(attempt + 1, 3); await sleep(1500 * (attempt + 1)); continue; }
+        throw lastErr;
+      }
+      clearTimeout(timer);
+      if (res.ok) return res.json().catch(() => ({}));
+      // 服务端明确报错 → 不重试
+      let msg = "上传到 R2 失败(" + res.status + ")";
+      if (res.status === 401) msg = "上传密码错误(401)。请在面板重设上传密码。";
+      else { try { const j = await res.json(); if (j && j.error) msg += "：" + j.error; } catch (e) {} }
+      throw new Error(msg);
+    }
+    throw lastErr || new Error("上传到 R2 失败");
+  }
+
   // 测试 token 是否可用（读仓库基本信息）
   async function testToken() {
     const info = await gh("", "GET");
@@ -141,6 +192,16 @@
     step("读取本地改动…");
     const newDrafts = await window.musicLib.getNewDrafts();
     const edits = await window.musicLib.getPublishedEdits();
+
+    // R2 模式下,有音频/视频要传却没设上传密码 → 提前拦下,别等传到一半才报错
+    if (r2Enabled()) {
+      const needsUpload = newDrafts.some((d) => d.audioBlob || d.videoBlob) ||
+        edits.some((e) => e.audioBlob || e.videoBlob);
+      if (needsUpload && !hasUploadToken()) {
+        throw new Error("有音频/视频要上传,但还没设置上传密码。请在面板「设置上传密码」里填好再发布。");
+      }
+    }
+
     const localHidden = window.musicLib.getLocalHidden();
     const pendingUnhide = window.musicLib.getPendingUnhide();
     const pendingDelete = window.musicLib.getPendingDelete();
@@ -180,12 +241,22 @@
     const newEntries = [];
     const newGalEntries = [];
 
-    // 把一个本地 blob 收进「待提交文件」,返回它在仓库里的路径
+    // 把一个本地 blob 处理掉,返回它的相对路径。
+    //   · 音频/视频 → 上传到 R2(经 Worker),不进 git；published.js 仍存相对路径,渲染时 resolveMedia 拼前缀
+    //   · 封面 → 仍塞进「待提交文件」走 GitHub(本阶段不动)
+    //   · R2 未开启(MEDIA_BASE/Worker 任一为空)时音频也退回 git,保证可回退
     async function blobToTree(blob, kind, base) {
       const folder = kind === "cover" ? "covers/" : kind === "video" ? "videos/" : "audio/";
       const def = kind === "cover" ? "png" : kind === "video" ? "mp4" : "mp3";
       const ext = extOf(blob, def);
       const path = folder + base + "." + ext;
+      if ((kind === "audio" || kind === "video") && r2Enabled()) {
+        const mb = (blob.size || 0) / 1048576;
+        const sz = mb >= 0.1 ? "，" + mb.toFixed(1) + "MB" : "";
+        step("上传" + (kind === "audio" ? "音频" : "视频") + "到 R2" + sz + "…");
+        await uploadToR2(blob, path, (a, t) => step("上传到 R2 · 网络不稳，正在重试 " + a + "/" + t + "…"));
+        return path;
+      }
       treeFiles.push({ path: path, base64: await fileToBase64(blob), size: blob.size || 0 });
       return path;
     }
@@ -348,6 +419,7 @@
 
   window.publisher = {
     hasToken, getToken, setToken, clearToken,
+    hasUploadToken, getUploadToken, setUploadToken, clearUploadToken, r2Enabled,
     getRepo, setRepo, testToken, publish
   };
 })();

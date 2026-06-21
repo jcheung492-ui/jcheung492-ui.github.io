@@ -688,6 +688,28 @@
       $("#admin-token-status").textContent = "已清除本机 Token。";
       await updatePublishUI();
     });
+
+    // ---- 上传密码（R2 音频上传 Worker 的 UPLOAD_TOKEN）----
+    $("#admin-uptoken-toggle").addEventListener("click", () => {
+      const box = $("#admin-uptoken-box");
+      box.hidden = !box.hidden;
+      if (!box.hidden && window.publisher.hasUploadToken()) {
+        $("#admin-uptoken-status").textContent = "已设置上传密码(出于安全不显示原文)。";
+      }
+    });
+    $("#admin-uptoken-save").addEventListener("click", () => {
+      const status = $("#admin-uptoken-status");
+      const val = $("#admin-uptoken").value.trim();
+      if (!val) { status.textContent = "请先填上传密码"; return; }
+      window.publisher.setUploadToken(val);
+      $("#admin-uptoken").value = "";
+      status.textContent = "✓ 已保存上传密码(只存本机浏览器)。";
+    });
+    $("#admin-uptoken-clear").addEventListener("click", () => {
+      window.publisher.clearUploadToken();
+      $("#admin-uptoken").value = "";
+      $("#admin-uptoken-status").textContent = "已清除本机上传密码。";
+    });
   }
 
   function wirePublish() {
