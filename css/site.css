@@ -1160,6 +1160,12 @@ body.theme-dark .work-cover {
 }
 .hero-roles span::after { content: ""; margin-left: 0; }
 body.theme-dark .hero-roles span { background: rgba(255, 255, 255, .08); }
+/* 窄屏:上面这条玻璃版 .hero-grid(1.5fr 1fr) 因排在响应式规则之后会盖掉单列,
+   这里在其之后重新收起为单列,并把头像摆正、居中放到文字下方 */
+@media (max-width: 880px) {
+  .hero-grid { grid-template-columns: 1fr; gap: 30px; align-items: stretch; }
+  .hero .portrait-frame { max-width: 360px; width: 100%; margin: 0 auto; }
+}
 .work-cat { padding: 30px clamp(22px, 3vw, 34px); margin-bottom: 26px; }
 #catdetail-strip { padding: 24px clamp(20px, 3vw, 32px); }
 .about-text { padding: 28px 30px; }
@@ -1267,6 +1273,7 @@ body.theme-dark .gallery-cell {
 .lyr-cr { font-size: 13.5px; line-height: 1.7; margin: 0; color: rgba(244, 238, 229, .82); }
 .lyr-cr b { color: #fff; font-weight: 600; margin-right: 4px; }
 .lyr-right {
+  position: relative;   /* 让歌词行 offsetTop 相对本容器,自动居中滚动才准 */
   padding: 50px 40px; overflow-y: auto; scroll-behavior: smooth; font-size: 16px; line-height: 1.4;
   -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
   mask-image: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
@@ -1278,11 +1285,21 @@ body.theme-dark .gallery-cell {
 .lyr-line.is-active { color: #fff; font-weight: 600; transform: scale(1.03); transform-origin: left; }
 .lyr-empty { color: rgba(244, 238, 229, .5); font-size: 14px; }
 @media (max-width: 720px) {
-  .lyr-frame { grid-template-columns: 1fr; height: 88vh; }
-  .lyr-left { border-right: none; border-bottom: 1px solid rgba(255, 255, 255, .10); flex-direction: row; flex-wrap: wrap; align-items: center; }
-  .lyr-cover { width: 88px; }
+  /* 改 grid 为 flex 纵向:头部定高(可内部滚动),歌词撑满剩余高度并独立滚动 */
+  .lyr-frame { display: flex; flex-direction: column; height: 88vh; }
+  .lyr-left {
+    flex: 0 0 auto; max-height: 40vh; gap: 8px 16px; padding: 22px 22px;
+    border-right: none; border-bottom: 1px solid rgba(255, 255, 255, .10);
+    flex-direction: row; flex-wrap: wrap; align-items: center;
+  }
+  .lyr-cover { width: 70px; }
   .lyr-play { margin-left: auto; }
-  .lyr-right { padding: 30px 24px; }
+  /* 标题/年份/制作名单各占一整行,排在封面与播放键下方 */
+  .lyr-title { width: 100%; font-size: 22px; margin: 4px 0 0; }
+  .lyr-meta { width: 100%; }
+  .lyr-credits { width: 100%; }
+  .lyr-credits-h { margin: 4px 0 6px; }
+  .lyr-right { flex: 1 1 auto; min-height: 0; padding: 24px 24px; }
 }
 
 /* ============================================================
