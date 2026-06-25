@@ -550,14 +550,18 @@
         };
       });
 
+      const allDrafts = (await this.getCustom())
+        .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      const editOfSet = new Set(allDrafts.filter((d) => d.editOf).map((d) => d.editOf));
+
       const published = (window.SITE_JOURNAL_PUBLISHED || []).map((j) => ({
         ...j, source: "published", hidden: false,
-        pendingDelete: pendDelete.has(j.id)
+        pendingDelete: pendDelete.has(j.id),
+        pendingEdit: editOfSet.has(j.id)
       }));
 
-      const drafts = (await this.getCustom())
-        .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
-        .map((j) => ({ ...j, source: "draft" }));
+      // 「修改草稿」(editOf) 不作为独立草稿行展示,发布时就地覆盖对应已发布随笔
+      const drafts = allDrafts.filter((d) => !d.editOf).map((j) => ({ ...j, source: "draft" }));
 
       return builtins.concat(published, drafts);
     },
@@ -591,6 +595,27 @@
       rec.date = date || ""; rec.title = title || ""; rec.body = body || "";
       await txOn(JOUR_STORE, "readwrite", (s) => s.put(rec));
       return rec;
+    },
+
+    // ---- 已发布随笔的「再次编辑」：建/复用带 editOf 的修改草稿(发布时按原 id 覆盖)----
+    async getNewDrafts()      { return (await this.getCustom()).filter((r) => !r.editOf); },
+    async getPublishedEdits() { return (await this.getCustom()).filter((r) => !!r.editOf); },
+    async startEditPublished(pub) {
+      const existing = (await this.getPublishedEdits()).find((r) => r.editOf === pub.id);
+      if (existing) return existing.id;
+      const rec = {
+        id: "jedit-" + pub.id + "-" + Date.now(),
+        editOf: pub.id,
+        date: pub.date || "", title: pub.title || "", body: pub.body || "",
+        createdAt: Date.now()
+      };
+      await txOn(JOUR_STORE, "readwrite", (s) => s.put(rec));
+      removeFrom(JOUR_DELETE_KEY, pub.id);   // 编辑与删除互斥
+      return rec.id;
+    },
+    async cancelPublishedEdit(pubId) {
+      const ed = (await this.getPublishedEdits()).find((r) => r.editOf === pubId);
+      if (ed) await this.remove(ed.id);
     },
 
     hideBuiltin(id) { removeFrom(JOUR_UNHIDE_KEY, id); addTo(JOUR_HIDDEN_KEY, id); },

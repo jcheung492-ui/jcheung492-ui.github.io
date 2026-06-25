@@ -226,13 +226,22 @@
 
     // ---- 随笔：纯文本，无文件上传 ----
     const journal = window.journalLib;
-    const jourDrafts = journal ? await journal.getCustom() : [];
+    const jourDrafts = journal ? await journal.getNewDrafts() : [];
+    const jourEdits = journal ? await journal.getPublishedEdits() : [];
     const jourLocalHidden = journal ? journal.getLocalHidden() : [];
     const jourPendingUnhide = journal ? journal.getPendingUnhide() : [];
     const jourPendingDelete = journal ? journal.getPendingDelete() : [];
     const curJourPublished = Array.isArray(window.SITE_JOURNAL_PUBLISHED) ? window.SITE_JOURNAL_PUBLISHED : [];
     const curJourHidden = Array.isArray(window.SITE_JOURNAL_HIDDEN) ? window.SITE_JOURNAL_HIDDEN : [];
-    const keptJourPublished = curJourPublished.filter((j) => !jourPendingDelete.includes(j.id));
+    // 已发布随笔：去掉待删除；有「修改草稿」的就地套用新内容（保持原 id）
+    const jourEditMap = new Map(jourEdits.map((e) => [e.editOf, e]));
+    const keptJourPublished = curJourPublished
+      .filter((j) => !jourPendingDelete.includes(j.id))
+      .map((j) => {
+        const ed = jourEditMap.get(j.id);
+        return ed ? { id: j.id, date: ed.date || "", title: ed.title || "", body: ed.body || "" } : j;
+      });
+    const jourEdited = jourEdits.length;
     const finalJourHidden = uniq(curJourHidden.concat(jourLocalHidden)).filter((id) => !jourPendingUnhide.includes(id));
     const newJourEntries = jourDrafts.map((j) => ({ id: j.id, date: j.date || "", title: j.title || "", body: j.body || "" }));
     const finalJourPublished = keptJourPublished.concat(newJourEntries);
@@ -384,6 +393,7 @@
       (newGalEntries.length ? ("+" + newGalEntries.length + " 照片 ") : "") +
       (galPendingDelete.length ? ("-" + galPendingDelete.length + " 照片 ") : "") +
       (newJourEntries.length ? ("+" + newJourEntries.length + " 随笔 ") : "") +
+      (jourEdited ? ("~" + jourEdited + " 随笔修改 ") : "") +
       (jourPendingDelete.length ? ("-" + jourPendingDelete.length + " 随笔 ") : "") +
       (reordered ? "↕ 调整展示顺序 " : "") +
       (textChanged ? "✎ 文案 " : "") +
@@ -412,7 +422,7 @@
       commit: commit.sha,
       added: newEntries.length, edited: ei, removed: pendingDelete.length,
       galAdded: newGalEntries.length, galRemoved: galPendingDelete.length,
-      jourAdded: newJourEntries.length, jourRemoved: jourPendingDelete.length,
+      jourAdded: newJourEntries.length, jourEdited: jourEdited, jourRemoved: jourPendingDelete.length,
       reordered: reordered, textChanged: textChanged
     };
   }

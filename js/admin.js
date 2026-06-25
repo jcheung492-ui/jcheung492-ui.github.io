@@ -289,8 +289,14 @@
         return { chip: "待删除", cls: "is-pending",
           btns: '<button data-jact="undo-del" data-id="' + j.id + '">撤销删除</button>' };
       }
+      if (j.pendingEdit) {
+        return { chip: "待更新", cls: "is-pending",
+          btns: '<button data-jact="edit-pub" data-id="' + j.id + '">继续编辑</button>' +
+                '<button data-jact="cancel-edit-pub" data-id="' + j.id + '">撤销修改</button>' };
+      }
       return { chip: "已发布", cls: "",
-        btns: '<button data-jact="del-pub" data-id="' + j.id + '">删除</button>' };
+        btns: '<button data-jact="edit-pub" data-id="' + j.id + '">编辑</button>' +
+              '<button data-jact="del-pub" data-id="' + j.id + '">删除</button>' };
     }
     if (j.pendingUnhide) {
       return { chip: "默认 · 待恢复上架", cls: "is-pending",
@@ -329,6 +335,11 @@
       b.addEventListener("click", async () => {
         const id = b.dataset.id, act = b.dataset.jact;
         if (act === "edit-draft") { await startJournalEdit(id); return; }
+        if (act === "edit-pub") { await startJournalEditPublished(id); return; }
+        if (act === "cancel-edit-pub") {
+          if (!confirm("撤销对这篇已发布随笔的修改吗?")) return;
+          await window.journalLib.cancelPublishedEdit(id);
+        }
         if (act === "hide") {
           if (!confirm("删除这篇默认随笔吗?(从随笔列表移除)")) return;
           window.journalLib.hideBuiltin(id);
@@ -361,6 +372,15 @@
     setJournalEditMode(rec);
     const form = $("#journal-form");
     window.scrollTo({ top: form.getBoundingClientRect().top + window.scrollY - 90, behavior: "smooth" });
+  }
+
+  // 编辑一篇「已发布」随笔：建/复用修改草稿,再把它读回表单(发布时按原 id 覆盖)
+  async function startJournalEditPublished(pubId) {
+    const pub = (window.SITE_JOURNAL_PUBLISHED || []).find((j) => j.id === pubId);
+    if (!pub) { $("#journal-status").textContent = "随笔不存在（可能已被删除）"; return; }
+    const editId = await window.journalLib.startEditPublished(pub);
+    await refreshAll();          // 让该行变成「待更新」
+    await startJournalEdit(editId);
   }
 
   function exitJournalEdit() {
@@ -728,6 +748,7 @@
           (res.galAdded ? ("新增照片 " + res.galAdded + " 张。") : "") +
           (res.galRemoved ? ("移除照片 " + res.galRemoved + " 张。") : "") +
           (res.jourAdded ? ("新增随笔 " + res.jourAdded + " 篇。") : "") +
+          (res.jourEdited ? ("更新随笔 " + res.jourEdited + " 篇。") : "") +
           (res.jourRemoved ? ("移除随笔 " + res.jourRemoved + " 篇。") : "") +
           (res.reordered ? "已更新展示顺序。" : "") +
           (res.textChanged ? "已更新站点文案。" : "");
