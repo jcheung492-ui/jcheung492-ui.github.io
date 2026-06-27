@@ -214,63 +214,17 @@ window.SITE_GALLERY_PUBLISHED = [
     "id": "gcustom-1782574338693-3069",
     "caption": "当你静不下来的时候，就来听场音乐会，你会发现更静不下来了",
     "src": "gallery/gup-1782574338693-3069.jpg"
-  },
-  {
-    "id": "gcustom-1782577559027-3761",
-    "caption": "很开心和曜宇还有Fergus的team玩的很嗨～",
-    "src": "gallery/gup-1782577559027-3761.jpg"
-  },
-  {
-    "id": "gcustom-1782577665718-2639",
-    "caption": "24年Alink-Passenger 嘉怡被alin幸运cue中，美颜霸屏",
-    "src": "gallery/gup-1782577665718-2639.jpg"
-  },
-  {
-    "id": "gcustom-1782577712172-61",
-    "caption": "Alin场正式演咯～",
-    "src": "gallery/gup-1782577712172-61.jpg"
-  },
-  {
-    "id": "gcustom-1782577745645-9723",
-    "caption": "",
-    "src": "gallery/gup-1782577745645-9723.jpg"
-  },
-  {
-    "id": "gcustom-1782577767385-3229",
-    "caption": "Cue2",
-    "src": "gallery/gup-1782577767385-3229.jpg"
-  },
-  {
-    "id": "gcustom-1782577830431-2190",
-    "caption": "24年alin演唱会工作餐～",
-    "src": "gallery/gup-1782577830431-2190.jpg"
-  },
-  {
-    "id": "gcustom-1782578030843-494",
-    "caption": "和罗彬 Drum setting+拍摄🎬没在怕的啦～",
-    "src": "gallery/gup-1782578030843-494.jpg"
-  },
-  {
-    "id": "gcustom-1782578069151-5004",
-    "caption": "太帅啦曜宇",
-    "src": "gallery/gup-1782578069151-5004.jpg"
   }
 ];
-window.SITE_GALLERY_HIDDEN = [];
-window.SITE_GALLERY_ORDER = [
+window.SITE_GALLERY_HIDDEN = [
   "g1",
   "g2",
   "g3",
   "g4",
   "g5",
-  "g6",
-  "gcustom-1782574338693-3069",
-  "gcustom-1782577559027-3761",
-  "gcustom-1782577665718-2639",
-  "gcustom-1782577767385-3229",
-  "gcustom-1782577712172-61",
-  "gcustom-1782577745645-9723"
+  "g6"
 ];
+window.SITE_GALLERY_ORDER = [];
 window.SITE_JOURNAL_PUBLISHED = [
   {
     "id": "jcustom-1781928768242-4697",
