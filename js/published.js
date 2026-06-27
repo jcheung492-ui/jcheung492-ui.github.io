@@ -209,7 +209,13 @@ window.SITE_HIDDEN = [
   "builtin-after-rain",
   "builtin-morning-mist"
 ];
-window.SITE_GALLERY_PUBLISHED = [];
+window.SITE_GALLERY_PUBLISHED = [
+  {
+    "id": "gcustom-1782574338693-3069",
+    "caption": "当你静不下来的时候，就来听场音乐会，你会发现更静不下来了",
+    "src": "gallery/gup-1782574338693-3069.jpg"
+  }
+];
 window.SITE_GALLERY_HIDDEN = [];
 window.SITE_JOURNAL_PUBLISHED = [
   {
