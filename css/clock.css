@@ -1,0 +1,33 @@
+/* ============================================================
+   侧边时钟 · 定位（每模块小钟版）
+   覆盖 site.css 里旧大钟的居中定位；形态与配色由 js/clock.js 内联绘制。
+   ============================================================ */
+#side-clock.side-clock,
+aside#side-clock {
+  position: fixed;
+  top: auto;
+  left: 24px;
+  bottom: 22px;          /* 想换右上角：改 right:24px; top:80px; 并删 left/bottom */
+  transform: none;
+  width: auto;
+  z-index: 40;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;  /* 不挡点击 */
+  line-height: 0;
+  opacity: .97;
+  transition: opacity .4s ease;
+}
+
+/* 播放条展开（.player-bar.is-open）时把时钟抬到它上方，避免重叠 */
+body:has(.player-bar.is-open) #side-clock.side-clock {
+  bottom: 78px;
+}
+
+@media (max-width: 640px) {
+  #side-clock.side-clock { left: 16px; bottom: 16px; transform: scale(.86); transform-origin: left bottom; }
+}
+
+/* 清掉旧版双钟容器可能残留的样式（clock.js 现在渲染纯内联 SVG，无这些子节点） */
+#side-clock .sc-analog,
+#side-clock .sc-nixie { all: unset; }

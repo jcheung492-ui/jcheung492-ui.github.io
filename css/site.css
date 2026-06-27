@@ -1021,11 +1021,11 @@ body::before {
 }
 body.theme-dark::before {
   background:
-    radial-gradient(54% 44% at 16% 18%, rgba(255, 182, 112, .40) 0%, transparent 60%),
-    radial-gradient(48% 42% at 84% 16%, rgba(226, 160, 120, .24) 0%, transparent 58%),
-    radial-gradient(54% 54% at 80% 84%, rgba(214, 166, 116, .34) 0%, transparent 58%),
-    radial-gradient(46% 46% at 20% 88%, rgba(200, 168, 124, .26) 0%, transparent 58%),
-    linear-gradient(160deg, #1d1812, #15110c);
+    radial-gradient(50% 42% at 16% 18%, rgba(255, 182, 112, .22) 0%, transparent 60%),
+    radial-gradient(46% 40% at 84% 16%, rgba(226, 160, 120, .13) 0%, transparent 58%),
+    radial-gradient(52% 52% at 80% 84%, rgba(214, 166, 116, .18) 0%, transparent 58%),
+    radial-gradient(44% 44% at 20% 88%, rgba(200, 168, 124, .14) 0%, transparent 58%),
+    linear-gradient(160deg, #15110b, #0c0906);
 }
 /* mesh 已盖住 body 自带纸纹，关掉以免重复叠加 */
 body.texture-on { background-image: none; }
@@ -1428,4 +1428,175 @@ body.theme-dark .work-listen { background: rgba(255, 255, 255, .10); border-colo
 
 @media (max-width: 680px) {
   .atext-rows { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   侧边时钟（北京时间·常驻左侧）
+   亮色 Light = 模拟挂钟 / 暗色 Studio = 辉光数字管(Nixie)
+   ============================================================ */
+.side-clock {
+  position: fixed;
+  top: 50%;
+  left: max(8px, calc(((100vw - var(--maxw)) / 2 - 188px) / 2));
+  transform: translateY(-50%);
+  width: 188px;
+  z-index: 30;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* --- 模拟挂钟(石墨盘面) --- */
+.sc-analog { display: flex; justify-content: center; }
+.sc-analog .ca-svg {
+  width: 170px; height: 170px;
+  filter: drop-shadow(0 14px 26px rgba(38, 32, 26, .28));
+}
+.ca-rim { stroke: rgba(0, 0, 0, .25); stroke-width: .4; }
+.ca-tick { stroke: rgba(236, 231, 221, .3); stroke-width: .5; }
+.ca-tick-major { stroke: rgba(236, 231, 221, .7); stroke-width: 1.1; }
+.ca-num {
+  fill: #ece7dd;
+  font-family: "Helvetica Neue", "PingFang SC", system-ui, sans-serif;
+  font-weight: 200; font-size: 7px;
+  text-anchor: middle; dominant-baseline: central;
+}
+.ca-num-major { font-size: 11.5px; font-weight: 300; }
+.ca-brand {
+  fill: rgba(236, 231, 221, .55);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 4.6px; letter-spacing: 1.1px; text-anchor: middle;
+}
+.ca-sheen { pointer-events: none; }
+.ca-hour, .ca-min, .ca-sec {
+  transform-box: view-box;
+  transform-origin: 50px 50px;
+}
+.ca-hour { fill: var(--accent); filter: drop-shadow(0 0 .4px rgba(0,0,0,.4)); }
+.ca-min  { fill: #f1ece2; }
+.ca-sec  { stroke: var(--accent); stroke-width: .8; stroke-linecap: round; opacity: .85; }
+.ca-cap  { fill: #f1ece2; }
+.ca-cap-dot { fill: var(--accent); }
+
+/* --- 辉光数字管 (Nixie) --- */
+.sc-nixie { display: none; }
+body.theme-dark .sc-analog { display: none; }
+body.theme-dark .sc-nixie { display: block; }
+
+.nx-case {
+  position: relative;
+  padding: 14px 12px 0;
+  border-radius: 14px;
+  background:
+    radial-gradient(120% 90% at 50% 12%, rgba(255, 120, 40, .14), transparent 62%),
+    linear-gradient(180deg, #241813 0%, #140c08 100%);
+  border: 1px solid rgba(255, 150, 80, .14);
+  box-shadow: inset 0 1px 0 rgba(255, 170, 100, .1), 0 16px 34px rgba(0, 0, 0, .55);
+}
+.nx-row { display: flex; align-items: flex-end; justify-content: center; gap: 2px; }
+.nx-cell { display: flex; flex-direction: column; align-items: center; }
+
+.nx-tube {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  width: 25px; height: 50px;
+  border-radius: 11px 11px 5px 5px;
+  background:
+    radial-gradient(72% 54% at 50% 50%, rgba(255, 120, 45, .30), transparent 72%),
+    radial-gradient(110% 70% at 50% 16%, rgba(255, 150, 70, .14), transparent 58%),
+    linear-gradient(180deg, rgba(54, 38, 30, .55), rgba(14, 8, 5, .7));
+  border: 1px solid rgba(255, 175, 115, .12);
+  box-shadow:
+    inset 0 0 16px rgba(255, 95, 28, .24),
+    inset 0 0 10px rgba(0, 0, 0, .5),
+    0 0 18px rgba(255, 85, 22, .24);
+  overflow: visible;
+}
+/* 内部金属网格(辉光管特征) */
+.nx-tube::before {
+  content: ""; position: absolute; inset: 4px 3px 6px 3px;
+  background-image:
+    repeating-linear-gradient(0deg, transparent 0 2.5px, rgba(255, 120, 45, .08) 2.5px 3px),
+    repeating-linear-gradient(90deg, transparent 0 2.5px, rgba(255, 120, 45, .08) 2.5px 3px);
+  border-radius: 7px; opacity: .7; pointer-events: none;
+}
+/* 玻璃高光 */
+.nx-tube::after {
+  content: ""; position: absolute; left: 3px; top: 3px; width: 38%; height: 46%;
+  border-radius: 8px 8px 10px 10px;
+  background: linear-gradient(150deg, rgba(255, 255, 255, .16), transparent 70%);
+  pointer-events: none;
+}
+.nx-ghost, .nx-digit {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-weight: 600; font-size: 33px; line-height: 1;
+}
+.nx-ghost { position: absolute; color: rgba(255, 90, 30, .12); }
+.nx-digit {
+  position: relative; color: #ffd6a2;
+  text-shadow:
+    0 0 2px #fff2dc,
+    0 0 5px #ffb066,
+    0 0 12px #ff7a2a,
+    0 0 24px rgba(255, 90, 20, .9),
+    0 0 40px rgba(255, 70, 12, .68),
+    0 0 64px rgba(255, 58, 8, .45);
+  filter: drop-shadow(0 0 7px rgba(255, 110, 35, .9));
+  animation: nx-flicker 5s infinite;
+}
+.nx-cell:nth-child(2) .nx-digit { animation-delay: -1.1s; }
+.nx-cell:nth-child(4) .nx-digit { animation-delay: -2.3s; }
+.nx-cell:nth-child(5) .nx-digit { animation-delay: -0.7s; }
+.nx-cell:nth-child(7) .nx-digit { animation-delay: -3.1s; }
+.nx-cell:nth-child(8) .nx-digit { animation-delay: -1.7s; }
+/* 铜质底座 */
+.nx-foot {
+  width: 21px; height: 7px; margin-top: -1px;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(180deg, #d8b066 0%, #a9823f 45%, #6f5224 100%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 235, 190, .5);
+}
+/* 分隔氖管(两点) */
+.nx-colon {
+  display: flex; flex-direction: column; justify-content: center; gap: 8px;
+  height: 50px; padding: 0 1px; margin-bottom: 7px;
+}
+.nx-colon i {
+  width: 4.5px; height: 4.5px; border-radius: 50%;
+  background: #ffd29a;
+  box-shadow:
+    0 0 5px #ffb066,
+    0 0 12px #ff7a2a,
+    0 0 22px rgba(255, 90, 20, .85);
+  animation: nx-blink 1s steps(1, end) infinite;
+}
+/* 木质底板 */
+.nx-plank {
+  height: 12px; margin: 6px -12px 0;
+  border-radius: 0 0 14px 14px;
+  background: linear-gradient(180deg, #4a3522, #2c1d12);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, .5);
+}
+.nx-label {
+  margin-top: 10px; text-align: center;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 11px; letter-spacing: .16em;
+  color: rgba(255, 180, 110, .5);
+}
+@keyframes nx-flicker {
+  0%, 100% { opacity: 1; }
+  6% { opacity: .85; } 7% { opacity: 1; }
+  48% { opacity: .94; } 49% { opacity: 1; }
+  72% { opacity: .8; } 73% { opacity: 1; }
+}
+@keyframes nx-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: .18; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nx-digit, .nx-colon i { animation: none; }
+}
+
+/* 留白不够宽就收起，避免压住居中内容 */
+@media (max-width: 1400px) {
+  .side-clock { display: none; }
 }

@@ -5,13 +5,13 @@
 (function () {
   const PAGES = ["home", "works", "sketches", "journal", "about", "guestbook", "contact", "catdetail"];
   const TITLES = {
-    home: "张百星 Justin · 音乐制作人",
-    works: "作品 Works · 张百星 Justin",
-    sketches: "随手录 Sketches · 张百星 Justin",
-    journal: "随笔 Journal · 张百星 Justin",
-    about: "关于 About · 张百星 Justin",
-    guestbook: "留言板 Guestbook · 张百星 Justin",
-    contact: "联系 Contact · 张百星 Justin"
+    home: "Justin’s Space",
+    works: "Works · Justin’s Space",
+    sketches: "Sketches · Justin’s Space",
+    journal: "Journal · Justin’s Space",
+    about: "About · Justin’s Space",
+    guestbook: "Guestbook · Justin’s Space",
+    contact: "Contact · Justin’s Space"
   };
 
   function show(name, active) {

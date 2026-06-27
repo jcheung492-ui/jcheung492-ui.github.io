@@ -3,11 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>张百星 Justin · 音乐制作人</title>
+<title>Justin’s Space</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32.png?v=1">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16.png?v=1">
+<link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png?v=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/site.css?v=27">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/site.css?v=29">
+<link rel="stylesheet" href="css/clock.css?v=1">
 </head>
 <body class="texture-on">
 
@@ -36,6 +40,13 @@
     </div>
   </div>
 </nav>
+
+<!-- ===================== 侧边时钟（北京时间·常驻） ===================== -->
+<!-- 亮色 Light = 模拟挂钟 / 暗色 Studio = 辉光数字管，跟随主题切换 -->
+<aside class="side-clock" id="side-clock" aria-hidden="true">
+  <div class="sc-analog" id="sc-analog"></div>
+  <div class="sc-nixie" id="sc-nixie"></div>
+</aside>
 
 <main>
 
@@ -417,8 +428,9 @@
 <script src="js/guestbook.js?v=26"></script>
 <script src="js/gallery.js?v=26"></script>
 <script src="js/journal.js?v=26"></script>
-<script src="js/router.js?v=26"></script>
-<script src="js/theme.js?v=26"></script>
+<script src="js/router.js?v=28"></script>
+<script src="js/theme.js?v=28"></script>
+<script src="js/clock.js?v=2"></script>
 
 </body>
 </html>
