@@ -163,17 +163,18 @@
   }
 
   // 生成 published.js 文件内容
-  function buildPublishedJs(published, hidden, galPublished, galHidden, order, siteText, jourPublished, jourHidden) {
+  function buildPublishedJs(published, hidden, galPublished, galHidden, order, siteText, jourPublished, jourHidden, galOrder) {
     return "// 此文件由「管理面板」自动生成,请勿手改。\n" +
       "// 作品:window.SITE_PUBLISHED / window.SITE_HIDDEN\n" +
       "// 光影:window.SITE_GALLERY_PUBLISHED / window.SITE_GALLERY_HIDDEN\n" +
       "// 随笔:window.SITE_JOURNAL_PUBLISHED / window.SITE_JOURNAL_HIDDEN\n" +
-      "// 顺序:window.SITE_ORDER（作品自定义展示顺序的 id 序列）\n" +
+      "// 顺序:window.SITE_ORDER（作品）/ window.SITE_GALLERY_ORDER（光影）自定义展示顺序的 id 序列\n" +
       "// 文案:window.SITE_TEXT（站点文案覆盖,键见 js/sitetext.js）\n" +
       "window.SITE_PUBLISHED = " + JSON.stringify(published, null, 2) + ";\n" +
       "window.SITE_HIDDEN = " + JSON.stringify(hidden, null, 2) + ";\n" +
       "window.SITE_GALLERY_PUBLISHED = " + JSON.stringify(galPublished || [], null, 2) + ";\n" +
       "window.SITE_GALLERY_HIDDEN = " + JSON.stringify(galHidden || [], null, 2) + ";\n" +
+      "window.SITE_GALLERY_ORDER = " + JSON.stringify(galOrder || [], null, 2) + ";\n" +
       "window.SITE_JOURNAL_PUBLISHED = " + JSON.stringify(jourPublished || [], null, 2) + ";\n" +
       "window.SITE_JOURNAL_HIDDEN = " + JSON.stringify(jourHidden || [], null, 2) + ";\n" +
       "window.SITE_ORDER = " + JSON.stringify(order || [], null, 2) + ";\n" +
@@ -349,13 +350,23 @@
     );
     const finalOrder = uniq(baseOrder.filter((id) => validIds.has(id)));
 
+    // 光影展示顺序：同样草稿优先，否则沿用线上；只保留仍然存在的照片 id（默认 + 发布后留存）
+    const galDraftOrder = gallery ? gallery.getDraftOrder() : null;
+    const galBaseOrder = (galDraftOrder && galDraftOrder.length)
+      ? galDraftOrder
+      : (Array.isArray(window.SITE_GALLERY_ORDER) ? window.SITE_GALLERY_ORDER : []);
+    const validGalIds = new Set(
+      (window.SITE_GALLERY || []).map((g) => g.id).concat(finalGalPublished.map((g) => g.id))
+    );
+    const finalGalOrder = uniq(galBaseOrder.filter((id) => validGalIds.has(id)));
+
     // ---- 站点文案：线上覆盖 ⊕ 草稿（只存与默认不同的键）----
     const textChanged = !!(window.textLib && window.textLib.pendingCount() > 0);
     const finalText = window.textLib
       ? window.textLib.getMergedForPublish()
       : (window.SITE_TEXT && typeof window.SITE_TEXT === "object" ? window.SITE_TEXT : {});
 
-    const publishedJs = buildPublishedJs(finalPublished, finalHidden, finalGalPublished, finalGalHidden, finalOrder, finalText, finalJourPublished, finalJourHidden);
+    const publishedJs = buildPublishedJs(finalPublished, finalHidden, finalGalPublished, finalGalHidden, finalOrder, finalText, finalJourPublished, finalJourHidden, finalGalOrder);
 
     // 3. Git Data API:base ref -> blobs -> tree -> commit -> 移动 ref
     step("读取仓库当前状态…");
@@ -386,6 +397,7 @@
     step("生成提交…");
     const newTree = await gh("/git/trees", "POST", { base_tree: baseTree, tree: tree });
     const reordered = JSON.stringify(finalOrder) !== JSON.stringify(Array.isArray(window.SITE_ORDER) ? window.SITE_ORDER : []);
+    const galReordered = JSON.stringify(finalGalOrder) !== JSON.stringify(Array.isArray(window.SITE_GALLERY_ORDER) ? window.SITE_GALLERY_ORDER : []);
     const msg = "内容更新:" +
       (newEntries.length ? ("+" + newEntries.length + " 作品 ") : "") +
       (ei ? ("~" + ei + " 修改 ") : "") +
@@ -396,6 +408,7 @@
       (jourEdited ? ("~" + jourEdited + " 随笔修改 ") : "") +
       (jourPendingDelete.length ? ("-" + jourPendingDelete.length + " 随笔 ") : "") +
       (reordered ? "↕ 调整展示顺序 " : "") +
+      (galReordered ? "↕ 照片顺序 " : "") +
       (textChanged ? "✎ 文案 " : "") +
       "（管理面板发布）";
     const commit = await gh("/git/commits", "POST", {
@@ -409,6 +422,7 @@
     window.SITE_HIDDEN = finalHidden;
     window.SITE_GALLERY_PUBLISHED = finalGalPublished;
     window.SITE_GALLERY_HIDDEN = finalGalHidden;
+    window.SITE_GALLERY_ORDER = finalGalOrder;
     window.SITE_JOURNAL_PUBLISHED = finalJourPublished;
     window.SITE_JOURNAL_HIDDEN = finalJourHidden;
     window.SITE_ORDER = finalOrder;
@@ -421,7 +435,7 @@
     return {
       commit: commit.sha,
       added: newEntries.length, edited: ei, removed: pendingDelete.length,
-      galAdded: newGalEntries.length, galRemoved: galPendingDelete.length,
+      galAdded: newGalEntries.length, galRemoved: galPendingDelete.length, galReordered: galReordered,
       jourAdded: newJourEntries.length, jourEdited: jourEdited, jourRemoved: jourPendingDelete.length,
       reordered: reordered, textChanged: textChanged
     };

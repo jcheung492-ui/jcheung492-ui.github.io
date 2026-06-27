@@ -376,6 +376,39 @@
   }
   const galUrls = new Map();
 
+  // ---- 光影展示顺序（与作品 SITE_ORDER 同构）----
+  // 线上已发布顺序 = window.SITE_GALLERY_ORDER（published.js 维护）
+  // 本地草稿顺序   = localStorage[GAL_ORDER_KEY]（拖动后暂存，发布前只本机生效）
+  const GAL_ORDER_KEY = "bx-gal-order-draft";
+  function galPublishedOrder() { return Array.isArray(window.SITE_GALLERY_ORDER) ? window.SITE_GALLERY_ORDER : []; }
+  function getGalDraftOrder() {
+    const raw = localStorage.getItem(GAL_ORDER_KEY);
+    if (!raw) return null;
+    try { const a = JSON.parse(raw); return Array.isArray(a) ? a : null; }
+    catch (e) { return null; }
+  }
+  function effectiveGalOrder() { return getGalDraftOrder() || galPublishedOrder(); }
+  function galOrderChanged() {
+    const d = getGalDraftOrder();
+    if (!d) return false;
+    return JSON.stringify(d) !== JSON.stringify(galPublishedOrder());
+  }
+  // 按生效顺序稳定重排：在顺序表里的按表内位置排；不在表里的（新照片）保持原相对位置、排到最后
+  function applyGalOrder(list) {
+    const order = effectiveGalOrder();
+    if (!order || !order.length) return list;
+    const pos = new Map(order.map((id, i) => [id, i]));
+    const BIG = order.length;
+    return list
+      .map((g, i) => ({ g, i }))
+      .sort((a, b) => {
+        const pa = pos.has(a.g.id) ? pos.get(a.g.id) : BIG + a.i;
+        const pb = pos.has(b.g.id) ? pos.get(b.g.id) : BIG + b.i;
+        return pa - pb;
+      })
+      .map((x) => x.g);
+  }
+
   window.galleryLib = {
     // 所有本地草稿照片（IndexedDB）
     async getCustom() {
@@ -414,7 +447,7 @@
         .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
         .map((g) => this.toDisplay(g));
 
-      return builtins.concat(published, drafts);
+      return applyGalOrder(builtins.concat(published, drafts));
     },
 
     // 当前展示中的照片（光影区用）：默认(未下架) + 已发布(未待删) + 本地草稿
@@ -486,12 +519,29 @@
     getPendingUnhide() { return getList(GAL_UNHIDE_KEY); },
     getPendingDelete() { return getList(GAL_DELETE_KEY); },
 
+    // ---- 展示顺序：给管理面板拖动 / 发布用（与 musicLib 同构）----
+    getEffectiveOrder() { return effectiveGalOrder(); },
+    getDraftOrder() { return getGalDraftOrder(); },
+    getPublishedOrder() { return galPublishedOrder(); },
+    // 保存一份新的草稿顺序（完整 id 序列）。与线上一致时自动撤掉草稿。
+    setDraftOrder(ids) {
+      const arr = Array.isArray(ids) ? ids.slice() : [];
+      if (JSON.stringify(arr) === JSON.stringify(galPublishedOrder())) {
+        localStorage.removeItem(GAL_ORDER_KEY);
+      } else {
+        setList(GAL_ORDER_KEY, arr);
+      }
+    },
+    clearDraftOrder() { localStorage.removeItem(GAL_ORDER_KEY); },
+    orderChanged() { return galOrderChanged(); },
+
     async hasLocalChanges() {
       const drafts = await this.getCustom();
       return drafts.length > 0 ||
         getList(GAL_HIDDEN_KEY).length > 0 ||
         getList(GAL_UNHIDE_KEY).length > 0 ||
-        getList(GAL_DELETE_KEY).length > 0;
+        getList(GAL_DELETE_KEY).length > 0 ||
+        galOrderChanged();
     },
 
     // 未发布的本地照片改动数量（给发布栏计数用）
@@ -500,7 +550,8 @@
       return drafts.length +
         getList(GAL_HIDDEN_KEY).length +
         getList(GAL_UNHIDE_KEY).length +
-        getList(GAL_DELETE_KEY).length;
+        getList(GAL_DELETE_KEY).length +
+        (galOrderChanged() ? 1 : 0);
     },
 
     async clearLocalAfterPublish() {
@@ -509,6 +560,7 @@
       setList(GAL_HIDDEN_KEY, []);
       setList(GAL_UNHIDE_KEY, []);
       setList(GAL_DELETE_KEY, []);
+      localStorage.removeItem(GAL_ORDER_KEY);
     }
   };
 

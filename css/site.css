@@ -951,6 +951,7 @@ body.theme-dark .ie-modal { background: rgba(38, 31, 26, .92); border-color: rgb
 }
 .admin-rows { border-top: 1px solid var(--rule); }
 .admin-rows.is-droptarget { background: color-mix(in srgb, var(--accent) 4%, transparent); }
+.admin-tracklist.is-droptarget { background: color-mix(in srgb, var(--accent) 4%, transparent); }
 
 /* ---------- responsive ---------- */
 @media (max-width: 880px) {

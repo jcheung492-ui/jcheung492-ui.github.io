@@ -237,6 +237,58 @@
       btns: '<button data-gact="hide" data-id="' + g.id + '">删除</button>' };
   }
 
+  // ---- 光影图廊：拖动排序（平铺一列，可自由调换；松手后存「顺序草稿」，发布后生效）----
+  let galDragEl = null;
+
+  function galRowAfterPointer(box, y) {
+    const rows = [...box.querySelectorAll(".admin-row:not(.is-dragging)")];
+    let closest = { dist: -Infinity, el: null };
+    for (const row of rows) {
+      const r = row.getBoundingClientRect();
+      const offset = y - r.top - r.height / 2;   // <0 表示光标在该行上半部
+      if (offset < 0 && offset > closest.dist) closest = { dist: offset, el: row };
+    }
+    return closest.el;
+  }
+
+  async function commitGalRowOrder(box) {
+    const ids = [...box.querySelectorAll(".admin-row")].map((el) => el.dataset.id);
+    window.galleryLib.setDraftOrder(ids);
+    // 列表本身保持当前 DOM 顺序，避免拖完跳动；公开图廊即时预览
+    await updatePublishUI();
+    if (window.galleryApp) await window.galleryApp.render();
+  }
+
+  function wireGalRowDrag(box) {
+    if (box.dataset.dragWired) return;   // 委托在 box 上，绑一次即可（行可反复重建）
+    box.dataset.dragWired = "1";
+    box.addEventListener("dragstart", (e) => {
+      const row = e.target.closest(".admin-row");
+      if (!row) return;
+      galDragEl = row;
+      row.classList.add("is-dragging");
+      box.classList.add("is-droptarget");
+      e.dataTransfer.effectAllowed = "move";
+      try { e.dataTransfer.setData("text/plain", row.dataset.id || ""); } catch (err) {}
+    });
+    box.addEventListener("dragover", (e) => {
+      if (!galDragEl) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      const after = galRowAfterPointer(box, e.clientY);
+      if (after == null) box.appendChild(galDragEl);
+      else if (after !== galDragEl) box.insertBefore(galDragEl, after);
+    });
+    box.addEventListener("drop", (e) => { if (galDragEl) e.preventDefault(); });
+    box.addEventListener("dragend", async () => {
+      if (!galDragEl) return;
+      galDragEl.classList.remove("is-dragging");
+      box.classList.remove("is-droptarget");
+      galDragEl = null;
+      await commitGalRowOrder(box);
+    });
+  }
+
   async function renderGalleryList() {
     const box = $("#admin-gallerylist");
     if (!box || !window.galleryLib) return;
@@ -245,7 +297,8 @@
     box.innerHTML = all.map((g) => {
       const m = galRowMeta(g);
       return (
-        '<div class="admin-row ' + m.cls + '">' +
+        '<div class="admin-row ' + m.cls + '" draggable="true" data-id="' + esc(g.id) + '">' +
+          '<span class="ar-handle" title="拖动调整展示顺序" aria-label="拖动排序">⠿</span>' +
           '<img src="' + (g.src || "") + '" alt="">' +
           '<span class="ar-title">' + esc(g.caption || "(无文字)") + "</span>" +
           '<span class="ar-kind">' + esc(m.chip) + "</span>" +
@@ -253,6 +306,8 @@
         "</div>"
       );
     }).join("");
+
+    wireGalRowDrag(box);
 
     box.querySelectorAll("button").forEach((b) => {
       b.addEventListener("click", async () => {
@@ -747,6 +802,7 @@
           (res.removed ? ("移除作品 " + res.removed + " 项。") : "") +
           (res.galAdded ? ("新增照片 " + res.galAdded + " 张。") : "") +
           (res.galRemoved ? ("移除照片 " + res.galRemoved + " 张。") : "") +
+          (res.galReordered ? "已更新照片顺序。" : "") +
           (res.jourAdded ? ("新增随笔 " + res.jourAdded + " 篇。") : "") +
           (res.jourEdited ? ("更新随笔 " + res.jourEdited + " 篇。") : "") +
           (res.jourRemoved ? ("移除随笔 " + res.jourRemoved + " 篇。") : "") +
