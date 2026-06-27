@@ -219,7 +219,11 @@ window.SITE_JOURNAL_PUBLISHED = [
     "body": "做了好久，终于出现了"
   }
 ];
-window.SITE_JOURNAL_HIDDEN = [];
+window.SITE_JOURNAL_HIDDEN = [
+  "j-newyear",
+  "j-rain",
+  "j-ears"
+];
 window.SITE_ORDER = [
   "builtin-morning-mist",
   "builtin-after-rain",
