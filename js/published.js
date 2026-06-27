@@ -149,7 +149,7 @@ window.SITE_PUBLISHED = [
     "role": "制作人（Co-Producing）",
     "desc": "搬进了没有沙发的新家，每天循环没有意义的工作，表面安静内心在呐喊。身体空荡荡的，生活的细碎具象在眼前才能体会到是活着。 又一个重复的下午，疲惫开始抗议：好想买沙发啊！ 它是不会对你有评判标准的温柔的拥抱，在这个拥抱里，大脑会开始放松，四肢变得透明，漂着的人渐渐落地，连时间都被挤走，这里只容得下我和你，以及我们慢慢平静的心。",
     "cover": "covers/up-1781780404690-3081.jpg",
-    "src": "audio/up-1781780404690-3081.mp3",
+    "src": "audio/up-edit-custom-1781780404690-3081-1782551659514.mp3",
     "credits": "作词Lyricist：Andystoy\n作曲Composer：Andystoy\n编曲Arranger：M!NA\n制作人Producer：Andystoy / 张百星\n人声录音师Recording Engineer (Vocals)：张百星\n音频编辑Audio Edit：张百星",
     "lyrics": "[00:02.40]作词Lyricist：Andystoy\n[00:03.70]作曲Composer：Andystoy\n[00:05.07]编曲Arranger：M!NA\n[00:06.12]制作人Producer：Andystoy / 张百星\n[00:12.20]阴天下午两点半\n[00:14.96]一个橙子切对半\n[00:17.67]加点气泡水\n[00:19.36]oh 有点满\n[00:20.56]But it's okay\n[00:23.53]我的房间有点乱\n[00:26.58]衣服把客厅堆满\n[00:29.23]新买的衣柜物流有点慢\n[00:32.27]让我心烦\n[00:35.64]矿泉水瓶1 2 3\n[00:38.43]靠墙做个伴\n[00:40.97]油画棒堆在角落没人管\n[00:44.01]我拿来玩\n[00:47.08]画了一幅一幅都不满\n[00:49.90]其实也没有多难\n[00:52.62]可能她抽烟让我很反感\n[00:55.71]不想为难\n[00:58.80]如果有个沙发\n[01:01.63]只有我和你呀\n[01:04.48]横叉竖叉没有人管我们爱干嘛就干嘛\n[01:22.33]如果有个沙发\n[01:24.87]只有我和你呀\n[01:27.88]如果有个沙发\n[01:30.71]如果有个沙发\n[01:33.77]如果有个沙发\n[01:36.61]只有我和你啊\n[01:39.51]横叉竖叉没有人管我们\n[02:09.46]每天晚上都加班\n[02:11.98]也没有按时吃饭\n[02:14.61]想追的剧都没有时间看\n[02:17.57]落灰收藏单\n[02:20.65]地铁每天都塞满\n[02:23.71]公交还常坐过站\n[02:26.36]太困了起床总是很困难\n[02:29.34]迟到也麻烦\n[02:32.30]如果有个沙发\n[02:38.43]如果有个沙发\n[02:43.98]如果有个沙发\n[02:47.25]只有我和你啊\n[02:50.02]横叉竖叉没有人管我们爱干嘛就干嘛\n[03:07.59]如果有个沙发\n[03:10.26]只有我和你啊\n[03:13.19]横叉竖叉没有人管我们\n[03:17.12]和声 Backing Vocals：Andystoy\n[03:17.65]特邀吉他 Guitarist：胡晨HUX\n[03:18.47]人声录音师Recording Engineer (Vocals)：张百星\n[03:19.21]吉他录音师 Recording Engineer (Guitar)：李杨@55TEC\n[03:19.71]录音室Recording Studio：55TEC\n[03:20.26]音频编辑Audio Edit：张百星 \n[03:20.83]混音&母带 Mixing & Mastering：张步若@RSS Studios\n[03:21.42]封面拍摄：Kuma\n[03:22.00]视觉设计：何晓婷\n[03:22.76]监制：郑翰文@flowsixteen"
   },
@@ -219,11 +219,7 @@ window.SITE_JOURNAL_PUBLISHED = [
     "body": "做了好久，终于出现了"
   }
 ];
-window.SITE_JOURNAL_HIDDEN = [
-  "j-newyear",
-  "j-rain",
-  "j-ears"
-];
+window.SITE_JOURNAL_HIDDEN = [];
 window.SITE_ORDER = [
   "builtin-morning-mist",
   "builtin-after-rain",
@@ -272,7 +268,7 @@ window.SITE_TEXT = {
   "contact.email.sub": "24–48 小时内回复",
   "contact.wechat.sub": "欢迎闲聊，更欢迎工作邀约",
   "contact.listen.text": "https://163cn.tv/9uu55rO",
-  "contact.listen.label": "平台听听我作品",
+  "contact.listen.label": "听听看",
   "contact.listen.sub": "",
   "cat.ad.intro": "为品牌短片、TVC 写的配乐。",
   "cat.game.intro": "为独立游戏做的音乐。",
