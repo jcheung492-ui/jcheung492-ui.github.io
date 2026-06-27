@@ -167,7 +167,7 @@ window.SITE_PUBLISHED = [
   {
     "id": "custom-1781781386745-7480",
     "category": "album",
-    "title": "苏州河（FreeDan）",
+    "title": "苏州河（Freedan）",
     "en": "原唱：薛凯琪",
     "year": "2024",
     "role": "制作人",
