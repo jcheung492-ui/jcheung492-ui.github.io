@@ -167,7 +167,7 @@ window.SITE_PUBLISHED = [
   {
     "id": "custom-1781781386745-7480",
     "category": "album",
-    "title": "苏州河（Freedan）",
+    "title": "苏州河（FreeDan）",
     "en": "原唱：薛凯琪",
     "year": "2024",
     "role": "制作人",
@@ -219,7 +219,11 @@ window.SITE_JOURNAL_PUBLISHED = [
     "body": "做了好久，终于出现了"
   }
 ];
-window.SITE_JOURNAL_HIDDEN = [];
+window.SITE_JOURNAL_HIDDEN = [
+  "j-ears",
+  "j-rain",
+  "j-newyear"
+];
 window.SITE_ORDER = [
   "builtin-morning-mist",
   "builtin-after-rain",
