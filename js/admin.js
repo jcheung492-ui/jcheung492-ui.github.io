@@ -505,11 +505,79 @@
     dt.items.add(new File([blob], name, { type: blob.type || "image/jpeg" }));
     input.files = dt.files;
   }
-  function openEditorFor(input, conf) {
+  // 浏览器能不能真的解码这张图?(HEIC/iPhone 原图、AVIF 等在 Chrome/Firefox 里 <img> 解不出来)
+  // 解不出来的图若直接存进草稿,页面上就是「裂开的图」——所以选图当下先验一遍。
+  function canDecodeImage(file) {
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(file);
+      const im = new Image();
+      im.onload = () => { URL.revokeObjectURL(url); resolve(im.naturalWidth > 0); };
+      im.onerror = () => { URL.revokeObjectURL(url); resolve(false); };
+      im.src = url;
+    });
+  }
+  const UNDECODABLE_MSG =
+    "这张图浏览器打不开(可能是 AVIF 等少见格式)。" +
+    "请先在「照片」App 里导出 / 另存为 JPG 或 PNG,再上传。";
+
+  // ---- HEIC/HEIF 转码：用本地 heic2any(libheif),只在真碰到 HEIC 时才懒加载这 1.3MB ----
+  function looksLikeHeic(file) {
+    const t = (file.type || "").toLowerCase();
+    if (t === "image/heic" || t === "image/heif") return true;
+    return /\.(heic|heif)$/i.test(file.name || "");
+  }
+  let heicLoading = null;
+  function loadHeic2any() {
+    if (window.heic2any) return Promise.resolve(window.heic2any);
+    if (heicLoading) return heicLoading;
+    heicLoading = new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = "js/vendor/heic2any.min.js";
+      s.async = true;
+      s.onload = () => window.heic2any ? resolve(window.heic2any) : reject(new Error("转码库加载异常"));
+      s.onerror = () => { heicLoading = null; reject(new Error("转码库加载失败")); };
+      document.head.appendChild(s);
+    });
+    return heicLoading;
+  }
+  // HEIC File -> 可解码的 JPEG File;失败抛错
+  async function heicToJpeg(file, name) {
+    const heic2any = await loadHeic2any();
+    const out = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.92 });
+    const blob = Array.isArray(out) ? out[0] : out;
+    return new File([blob], (name || "photo") + ".jpg", { type: "image/jpeg" });
+  }
+
+  async function openEditorFor(input, conf) {
     const f = input.files[0];
-    if (!f || !/^image\//.test(f.type) || !window.imgEditor) return;
+    if (!f) return;
+    const status = conf.statusSel ? $(conf.statusSel) : null;
+    const say = (msg) => { if (status) status.textContent = msg; else if (msg) alert(msg); };
+
+    let work = f;
+    // 浏览器解不出来时:若像 HEIC 就转码,否则提示换格式
+    if (!(await canDecodeImage(work))) {
+      if (looksLikeHeic(f)) {
+        say("正在转换 HEIC 照片…(首次会加载一次转码组件,稍等几秒)");
+        try {
+          work = await heicToJpeg(f, "photo");
+          setInputFile(input, work, conf.name || "photo.jpg");   // 让后续提交拿到转好的 JPG
+          say("");
+        } catch (err) {
+          input.value = "";
+          say("HEIC 转换失败:" + err.message + "。可在「照片」App 里导出为 JPG 再上传。");
+          return;
+        }
+      } else {
+        input.value = "";
+        say(UNDECODABLE_MSG);
+        return;
+      }
+    }
+
+    if (!window.imgEditor) return;   // 没有编辑器时,放行这张「已确认可解码」的图
     window.imgEditor.open(Object.assign({
-      file: f,
+      file: work,
       onDone: (res) => {
         // res 是处理后的 Blob → 回填;若是原 File(点了「用原图」)则保持不变
         if (res && res instanceof Blob && !(res instanceof File)) setInputFile(input, res, conf.name || "image.jpg");
@@ -518,11 +586,11 @@
     }, conf.open));
   }
   function wireImageEditor() {
-    if (!window.imgEditor) return;
     const cover = $("#af-cover");
     if (cover) cover.addEventListener("change", () => {
       openEditorFor(cover, {
         name: "cover.jpg",
+        statusSel: "#admin-status",
         open: {
           mode: "crop", aspect: 1,
           title: ($("#af-title") ? $("#af-title").value.trim() : ""),
@@ -532,7 +600,7 @@
     });
     const gimg = $("#gf-img");
     if (gimg) gimg.addEventListener("change", () => {
-      openEditorFor(gimg, { name: "photo.jpg", open: { mode: "crop", aspect: null } });
+      openEditorFor(gimg, { name: "photo.jpg", statusSel: "#gallery-status", open: { mode: "crop", aspect: null } });
     });
   }
 
@@ -649,6 +717,11 @@
       const existing = editing ? await window.galleryLib.getOne(editing) : null;
       const willHaveImg = imgFile || (existing && existing.imgBlob);
       if (!willHaveImg) { status.textContent = "请先选择一张照片"; return; }
+      // 兜底:存草稿前再确认这张图能被浏览器解码,避免「裂开的图」被存进去
+      if (imgFile && !(await canDecodeImage(imgFile))) {
+        status.textContent = UNDECODABLE_MSG;
+        return;
+      }
 
       status.textContent = editing ? "正在保存修改…" : "正在保存草稿…";
       try {
