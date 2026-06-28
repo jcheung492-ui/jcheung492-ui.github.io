@@ -214,6 +214,16 @@ window.SITE_GALLERY_PUBLISHED = [
     "id": "gcustom-1782574338693-3069",
     "caption": "当你静不下来的时候，就来听场音乐会，你会发现更静不下来了",
     "src": "gallery/gup-1782574338693-3069.jpg"
+  },
+  {
+    "id": "gcustom-1782618010436-8342",
+    "caption": "Working",
+    "src": "gallery/gup-1782618010436-8342.jpg"
+  },
+  {
+    "id": "gcustom-1782618080410-3630",
+    "caption": "电影《寻她》首部长篇配乐",
+    "src": "gallery/gup-1782618080410-3630.heic"
   }
 ];
 window.SITE_GALLERY_HIDDEN = [
