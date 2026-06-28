@@ -216,14 +216,9 @@ window.SITE_GALLERY_PUBLISHED = [
     "src": "gallery/gup-1782574338693-3069.jpg"
   },
   {
-    "id": "gcustom-1782618010436-8342",
-    "caption": "Working",
-    "src": "gallery/gup-1782618010436-8342.jpg"
-  },
-  {
-    "id": "gcustom-1782618080410-3630",
-    "caption": "电影《寻她》首部长篇配乐",
-    "src": "gallery/gup-1782618080410-3630.heic"
+    "id": "gcustom-1782618329762-5747",
+    "caption": "电影《寻她》首部长篇",
+    "src": "gallery/gup-1782618329762-5747.heic"
   }
 ];
 window.SITE_GALLERY_HIDDEN = [
