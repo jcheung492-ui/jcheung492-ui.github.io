@@ -209,16 +209,6 @@ window.SITE_GALLERY_PUBLISHED = [
     "id": "gcustom-1782619119631-964",
     "caption": "电影《寻她》首部长篇音乐",
     "src": "gallery/gup-1782619119631-964.jpg"
-  },
-  {
-    "id": "gcustom-1782620345225-7441",
-    "caption": "电影《寻她》庆功宴with白客",
-    "src": "gallery/gup-1782620345225-7441.jpg"
-  },
-  {
-    "id": "gcustom-1782620483014-9828",
-    "caption": "电影《寻她》庆功宴with舒淇",
-    "src": "gallery/gup-1782620483014-9828.jpg"
   }
 ];
 window.SITE_GALLERY_HIDDEN = [
