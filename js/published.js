@@ -209,6 +209,11 @@ window.SITE_GALLERY_PUBLISHED = [
     "id": "gcustom-1782619119631-964",
     "caption": "电影《寻她》首部长篇音乐",
     "src": "gallery/gup-1782619119631-964.jpg"
+  },
+  {
+    "id": "gcustom-1782620627919-2510",
+    "caption": "《寻她》庆功宴with白客",
+    "src": "gallery/gup-1782620627919-2510.jpg"
   }
 ];
 window.SITE_GALLERY_HIDDEN = [
