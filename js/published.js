@@ -107,16 +107,6 @@ window.SITE_PUBLISHED = [
     "video": "https://www.youtube.com/watch?v=9bU65EtPtrc"
   },
   {
-    "id": "custom-1781779642107-3714",
-    "category": "film",
-    "title": "电影《寻她》",
-    "en": "",
-    "year": "2025",
-    "role": "作曲/混音",
-    "desc": "由舒淇、白客领衔主演的电影《寻她》于2025年10月上映，该片在2023年第25届上海国际电影节首映，并斩获金爵奖-艺术贡献奖",
-    "cover": "covers/up-1781779642107-3714.jpg"
-  },
-  {
     "id": "custom-1781780004618-3282",
     "category": "album",
     "title": "寻星",
@@ -216,26 +206,26 @@ window.SITE_GALLERY_PUBLISHED = [
     "src": "gallery/gup-1782574338693-3069.jpg"
   },
   {
-    "id": "gcustom-1782618329762-5747",
-    "caption": "电影《寻她》首部长篇",
-    "src": "gallery/gup-1782618329762-5747.heic"
+    "id": "gcustom-1782619119631-964",
+    "caption": "电影《寻她》首部长篇音乐",
+    "src": "gallery/gup-1782619119631-964.jpg"
   }
 ];
-window.SITE_GALLERY_HIDDEN = [
+window.SITE_GALLERY_HIDDEN = [];
+window.SITE_GALLERY_ORDER = [
   "g1",
   "g2",
+  "g6",
   "g3",
   "g4",
-  "g5",
-  "g6"
+  "g5"
 ];
-window.SITE_GALLERY_ORDER = [];
 window.SITE_JOURNAL_PUBLISHED = [
   {
     "id": "jcustom-1781928768242-4697",
     "date": "2026.06.22",
     "title": "关于这个领地的诞生",
-    "body": "欢迎大家到来"
+    "body": "做了好久，终于出现了"
   }
 ];
 window.SITE_JOURNAL_HIDDEN = [
@@ -275,7 +265,6 @@ window.SITE_ORDER = [
   "builtin-last-summer",
   "builtin-film-confession",
   "builtin-film-migrant",
-  "custom-1781779642107-3714",
   "builtin-sketch-late-cover",
   "builtin-sketch-three-chords",
   "builtin-sketch-subway"
@@ -296,5 +285,6 @@ window.SITE_TEXT = {
   "cat.ad.intro": "为品牌短片、TVC 写的配乐。",
   "cat.game.intro": "为独立游戏做的音乐。",
   "cat.film.intro": "参与过的影视项目。",
-  "works.sub": "专辑、广告配乐、游戏配乐可以直接听；还是做了些作品的"
+  "works.sub": "专辑、广告配乐、游戏配乐可以直接听；还是做了些作品的",
+  "about.fact1.dt": "演唱"
 };
