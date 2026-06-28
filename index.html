@@ -416,7 +416,8 @@
 <!-- ===================== 脚本 ===================== -->
 <script src="js/media.js?v=26"></script>
 <script src="js/data.js?v=26"></script>
-<script src="js/published.js?v=26"></script>
+<!-- published.js 每次「发布」都会变,必须每次取最新:用时间戳绕过浏览器/CDN 缓存,否则会看到旧数据(已删的照片回来、新图不显示) -->
+<script>document.write('<script src="js/published.js?t=' + Date.now() + '"><\/script>');</script>
 <script src="js/sitetext.js?v=26"></script>
 <script src="js/library.js?v=27"></script>
 <script src="js/publish.js?v=27"></script>
@@ -425,7 +426,7 @@
 <script src="js/player.js?v=26"></script>
 <script src="js/lyrics.js?v=26"></script>
 <script src="js/imgedit.js?v=26"></script>
-<script src="js/admin.js?v=27"></script>
+<script src="js/admin.js?v=28"></script>
 <script src="js/guestbook.js?v=26"></script>
 <script src="js/gallery.js?v=26"></script>
 <script src="js/journal.js?v=26"></script>
