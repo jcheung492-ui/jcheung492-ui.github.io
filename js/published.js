@@ -214,6 +214,16 @@ window.SITE_GALLERY_PUBLISHED = [
     "id": "gcustom-1782620627919-2510",
     "caption": "《寻她》庆功宴with白客",
     "src": "gallery/gup-1782620627919-2510.jpg"
+  },
+  {
+    "id": "gcustom-1783007233796-5061",
+    "caption": "电影《寻她》庆功宴with舒淇",
+    "src": "gallery/gup-1783007233796-5061.jpg"
+  },
+  {
+    "id": "gcustom-1783007315967-6698",
+    "caption": "ACG专场音乐会in海岸城",
+    "src": "gallery/gup-1783007315967-6698.jpg"
   }
 ];
 window.SITE_GALLERY_HIDDEN = [
