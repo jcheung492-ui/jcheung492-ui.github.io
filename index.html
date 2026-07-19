@@ -151,7 +151,6 @@
             <option value="album">专辑</option>
             <option value="ad">广告配乐</option>
             <option value="game">游戏配乐</option>
-            <option value="sketch">随手录 / demo</option>
             <option value="film">电影(只放封面)</option>
           </select>
         </label>
@@ -196,6 +195,27 @@
       <p class="admin-status" id="admin-status"></p>
       <p class="admin-orderhint">拖动每行左侧的 <b>⠿</b> 调整展示顺序 —— 改动先存为本地草稿、即时预览，点上方「发布到线上」后对所有人生效。</p>
       <div class="admin-tracklist" id="admin-tracklist"></div>
+
+      <!-- 随手录 / Sketchbook 管理:小 demo,只要 mp3 + 标题 + 一句注释(青春版 WORKS) -->
+      <div class="admin-sketch-section">
+        <h3>随手录 / Sketchbook（小 demo）</h3>
+        <p class="admin-note">放一些没做完的小样、翻唱、路上哼出来的动机。只要一个<strong>音频 + 标题</strong>就行，想写句注释也可以，不需要封面 / 制作名单 / 歌词。和作品一样先存<strong>本地草稿</strong>，确认后一起点上方<strong>「发布到线上」</strong>。</p>
+        <form class="admin-form" id="sketch-form">
+          <label class="full">标题
+            <input type="text" id="sf-title" placeholder="比如:地铁里的旋律" autocomplete="off">
+          </label>
+          <label class="full" id="sf-audio-label">
+            <span class="lbl">音频文件 (mp3 / wav / m4a)</span>
+            <input type="file" id="sf-audio" accept="audio/*">
+          </label>
+          <label class="full">一句注释(可选)
+            <input type="text" id="sf-desc" placeholder="录这条的时候在想什么" autocomplete="off">
+          </label>
+          <button type="submit">加入草稿</button>
+        </form>
+        <p class="admin-status" id="sketch-status"></p>
+        <div class="admin-tracklist" id="admin-sketchlist"></div>
+      </div>
 
       <!-- 光影图廊管理:上传风景 / 工作照 -->
       <div class="admin-gallery-section">

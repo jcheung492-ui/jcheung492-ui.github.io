@@ -142,14 +142,16 @@
     );
   }
 
-  // 管理列表里分区的先后顺序
-  const ADMIN_CAT_ORDER = ["album", "ad", "game", "film", "sketch"];
+  // 管理列表里分区的先后顺序（随手录 sketch 单独在「Sketchbook 管理区」维护,不进主列表）
+  const ADMIN_CAT_ORDER = ["album", "ad", "game", "film"];
 
   async function renderAdminList() {
     const box = $("#admin-tracklist");
     if (!box) return;
     // 已下架的默认作品不再灰显占位 —— 直接从列表移除(用户偏好「下架即删除」)
+    // 随手录(sketch)从主列表剔除,交给下方独立的 Sketchbook 管理区
     const all = (await window.musicLib.getAllWithHidden())
+      .filter((t) => t.category !== "sketch")
       .filter((t) => !(t.source === "builtin" && t.hidden));
 
     // 按分类分组（保持各分类内部的现有顺序）；未知分类排到最后
@@ -499,6 +501,153 @@
     });
   }
 
+  // ============================================================
+  // 随手录 / Sketchbook 管理区 —— 「青春版 WORKS」:只要 mp3 + 标题 + 一句注释
+  //   底层仍复用 musicLib(category:"sketch"),但表单极简、独立列表,不进主作品列表
+  // ============================================================
+  let editingSketchId = null;   // 当前正在编辑的随手录草稿 id（null = 新增模式）
+
+  async function renderSketchList() {
+    const box = $("#admin-sketchlist");
+    if (!box) return;
+    const items = (await window.musicLib.getAllWithHidden())
+      .filter((t) => t.category === "sketch")
+      .filter((t) => !(t.source === "builtin" && t.hidden));
+    if (!items.length) {
+      box.innerHTML = '<p class="admin-empty">还没有随手录。用上面的表单加一条小 demo 吧。</p>';
+      return;
+    }
+    box.innerHTML = items.map((t) => {
+      const m = rowMeta(t);
+      return (
+        '<div class="admin-row ' + m.cls + '" data-id="' + esc(t.id) + '">' +
+          '<span class="ar-title">' + esc(t.title || "(无标题)") + "</span>" +
+          '<span class="ar-kind">' + esc(m.chip) + "</span>" +
+          m.btns +
+        "</div>"
+      );
+    }).join("");
+
+    box.querySelectorAll("button").forEach((b) => {
+      b.addEventListener("click", async () => {
+        const id = b.dataset.id, act = b.dataset.act;
+        if (act === "edit-draft") { await startSketchEdit(id); return; }
+        if (act === "edit-pub") { await startSketchEditPublished(id); return; }
+        if (act === "cancel-edit-pub") {
+          if (!confirm("撤销对这条已发布随手录的修改吗?(只丢弃未发布的改动,线上不变)")) return;
+          await window.musicLib.cancelPublishedEdit(id);
+          if (editingSketchId) exitSketchEdit();
+          await refreshAll();
+          return;
+        }
+        if (act === "hide") {
+          if (!confirm("删除这条默认随手录吗?(从随手录列表移除)")) return;
+          window.musicLib.hideBuiltin(id);
+        }
+        if (act === "unhide") window.musicLib.unhideBuiltin(id);
+        if (act === "del-pub") {
+          if (!confirm("把这条已发布随手录标记为删除?(发布后才真正移除)")) return;
+          await window.musicLib.deletePublished(id);
+        }
+        if (act === "undo-del") window.musicLib.undoDeletePublished(id);
+        if (act === "del-draft") {
+          if (!confirm("删除这条本地草稿吗?")) return;
+          await window.musicLib.remove(id);
+        }
+        await refreshAll();
+      });
+    });
+  }
+
+  async function startSketchEdit(id) {
+    const rec = await window.musicLib.getOne(id);
+    if (!rec) { $("#sketch-status").textContent = "草稿不存在（可能已删除）"; return; }
+    editingSketchId = id;
+    $("#sf-title").value = rec.title || "";
+    $("#sf-desc").value = rec.desc || "";
+    $("#sf-audio").value = "";   // 留空＝保留原音频
+    setSketchEditMode(rec);
+    const form = $("#sketch-form");
+    window.scrollTo({ top: form.getBoundingClientRect().top + window.scrollY - 90, behavior: "smooth" });
+  }
+
+  // 编辑一条「已发布」随手录:建/复用修改草稿,再读回表单(发布时按原 id 覆盖)
+  async function startSketchEditPublished(pubId) {
+    const pub = (window.SITE_PUBLISHED || []).find((t) => t.id === pubId);
+    if (!pub) { $("#sketch-status").textContent = "随手录不存在（可能已被删除）"; return; }
+    const editId = await window.musicLib.startEditPublished(pub);
+    await refreshAll();          // 让该行变成「待更新」
+    await startSketchEdit(editId);
+  }
+
+  function exitSketchEdit() {
+    editingSketchId = null;
+    $("#sketch-form").reset();
+    setSketchEditMode(null);
+    $("#sketch-status").textContent = "";
+  }
+
+  function setSketchEditMode(rec) {
+    const form = $("#sketch-form");
+    const submitBtn = form.querySelector('button[type="submit"]');
+    let banner = $("#sf-editing");
+    if (rec) {
+      submitBtn.textContent = "保存修改";
+      if (!banner) {
+        banner = document.createElement("div");
+        banner.id = "sf-editing";
+        banner.className = "af-editing";
+        form.insertBefore(banner, form.firstChild);
+      }
+      const keepAudio = (rec.audioBlob || rec.origSrc) ? "<em>不重新选就保留原音频</em>" : "";
+      const tag = rec.editOf ? "（已发布）" : "";
+      banner.innerHTML =
+        '<span class="afe-label">正在编辑' + tag + "：<strong>" + esc(rec.title || "") + "</strong>" +
+        keepAudio + "</span>" +
+        '<button type="button" id="sf-cancel-edit">取消编辑</button>';
+      banner.querySelector("#sf-cancel-edit").addEventListener("click", exitSketchEdit);
+    } else {
+      submitBtn.textContent = "加入草稿";
+      if (banner) banner.remove();
+    }
+  }
+
+  function wireSketchForm() {
+    const form = $("#sketch-form");
+    if (!form) return;
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const status = $("#sketch-status");
+      const title = $("#sf-title").value.trim();
+      const desc = $("#sf-desc").value.trim();
+      const audioFile = $("#sf-audio").files[0];
+      const editing = editingSketchId;
+      if (!title) { status.textContent = "请填写标题"; return; }
+      const existing = editing ? await window.musicLib.getOne(editing) : null;
+      const willHaveAudio = audioFile || (existing && (existing.audioBlob || existing.origSrc));
+      if (!willHaveAudio) { status.textContent = "随手录需要一个音频文件"; return; }
+
+      status.textContent = editing ? "正在保存修改…" : "正在保存草稿…";
+      try {
+        if (editing) {
+          await window.musicLib.update(editing, { category: "sketch", title, desc, audioFile });
+          editingSketchId = null;
+          form.reset();
+          setSketchEditMode(null);
+          status.textContent = "已保存修改 ✓ —— 确认后点上方「发布到线上」";
+        } else {
+          await window.musicLib.add({ category: "sketch", title, desc, audioFile });
+          form.reset();
+          status.textContent = "已加入草稿 ✓ —— 确认后点上方「发布到线上」";
+        }
+        setTimeout(() => { status.textContent = ""; }, 4000);
+        await refreshAll();
+      } catch (err) {
+        status.textContent = "保存失败:" + err.message;
+      }
+    });
+  }
+
   // ---- 传图编辑器接线：选文件后弹「裁切 / 鸣潮风格封面」，产出回填到 input ----
   function setInputFile(input, blob, name) {
     const dt = new DataTransfer();
@@ -798,6 +947,7 @@
 
   async function refreshAll() {
     await renderAdminList();
+    await renderSketchList();
     await renderGalleryList();
     await renderJournalList();
     renderTextEditor();
@@ -1057,6 +1207,7 @@
     });
 
     wireForm();
+    wireSketchForm();
     wireGalleryForm();
     wireJournalForm();
     wireTextEditor();
