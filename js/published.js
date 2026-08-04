@@ -85,17 +85,6 @@ window.SITE_PUBLISHED = [
     "video": "https://www.bilibili.com/video/BV1dJ4m147yj/?share_source=copy_web&vd_source=57636b2b428c219969719ffd30a8141f"
   },
   {
-    "id": "custom-1781773418647-5642",
-    "category": "game",
-    "title": "《鸣潮》共鸣者「千咲」PV",
-    "en": "",
-    "year": "2025",
-    "role": "作曲/混音",
-    "desc": "哪怕下一步是泥沼，下一步是深渊—— 我也会踩着你们，踏过去",
-    "cover": "covers/up-1781773418647-5642.jpg",
-    "video": "https://www.bilibili.com/video/BV1CECzBREko/?share_source=copy_web&vd_source=57636b2b428c219969719ffd30a8141f"
-  },
-  {
     "id": "custom-1781774095748-2457",
     "category": "ad",
     "title": "小米17系列宣传片",
@@ -292,7 +281,6 @@ window.SITE_ORDER = [
   "builtin-game-star",
   "builtin-game-dusk",
   "custom-1781773097053-7125",
-  "custom-1781773418647-5642",
   "builtin-old-town",
   "builtin-last-summer",
   "builtin-film-confession",
