@@ -697,42 +697,47 @@
     return new File([blob], (name || "photo") + ".jpg", { type: "image/jpeg" });
   }
 
-  async function openEditorFor(input, conf) {
-    const f = input.files[0];
-    if (!f) return;
-    const status = conf.statusSel ? $(conf.statusSel) : null;
-    const say = (msg) => { if (status) status.textContent = msg; else if (msg) alert(msg); };
+  // 返回 Promise<boolean>：true = input 里留着一张可用的图；false = 取消 / 用不了
+  // （封面、图廊那两处不关心返回值；站点图片位要等裁切完才能读 input.files）
+  function openEditorFor(input, conf) {
+    return new Promise((resolve) => { (async () => {
+      const f = input.files[0];
+      if (!f) return resolve(false);
+      const status = conf.statusSel ? $(conf.statusSel) : null;
+      const say = (msg) => { if (status) status.textContent = msg; else if (msg) alert(msg); };
 
-    let work = f;
-    // 浏览器解不出来时:若像 HEIC 就转码,否则提示换格式
-    if (!(await canDecodeImage(work))) {
-      if (looksLikeHeic(f)) {
-        say("正在转换 HEIC 照片…(首次会加载一次转码组件,稍等几秒)");
-        try {
-          work = await heicToJpeg(f, "photo");
-          setInputFile(input, work, conf.name || "photo.jpg");   // 让后续提交拿到转好的 JPG
-          say("");
-        } catch (err) {
+      let work = f;
+      // 浏览器解不出来时:若像 HEIC 就转码,否则提示换格式
+      if (!(await canDecodeImage(work))) {
+        if (looksLikeHeic(f)) {
+          say("正在转换 HEIC 照片…(首次会加载一次转码组件,稍等几秒)");
+          try {
+            work = await heicToJpeg(f, "photo");
+            setInputFile(input, work, conf.name || "photo.jpg");   // 让后续提交拿到转好的 JPG
+            say("");
+          } catch (err) {
+            input.value = "";
+            say("HEIC 转换失败:" + err.message + "。可在「照片」App 里导出为 JPG 再上传。");
+            return resolve(false);
+          }
+        } else {
           input.value = "";
-          say("HEIC 转换失败:" + err.message + "。可在「照片」App 里导出为 JPG 再上传。");
-          return;
+          say(UNDECODABLE_MSG);
+          return resolve(false);
         }
-      } else {
-        input.value = "";
-        say(UNDECODABLE_MSG);
-        return;
       }
-    }
 
-    if (!window.imgEditor) return;   // 没有编辑器时,放行这张「已确认可解码」的图
-    window.imgEditor.open(Object.assign({
-      file: work,
-      onDone: (res) => {
-        // res 是处理后的 Blob → 回填;若是原 File(点了「用原图」)则保持不变
-        if (res && res instanceof Blob && !(res instanceof File)) setInputFile(input, res, conf.name || "image.jpg");
-      },
-      onCancel: () => { input.value = ""; }
-    }, conf.open));
+      if (!window.imgEditor) return resolve(true);   // 没有编辑器时,放行这张「已确认可解码」的图
+      window.imgEditor.open(Object.assign({
+        file: work,
+        onDone: (res) => {
+          // res 是处理后的 Blob → 回填;若是原 File(点了「用原图」)则保持不变
+          if (res && res instanceof Blob && !(res instanceof File)) setInputFile(input, res, conf.name || "image.jpg");
+          resolve(true);
+        },
+        onCancel: () => { input.value = ""; resolve(false); }
+      }, conf.open));
+    })(); });
   }
   function wireImageEditor() {
     const cover = $("#af-cover");
@@ -761,6 +766,21 @@
     const groups = window.textLib.fieldGroups();
     box.innerHTML = groups.map((g) => {
       const rows = g.fields.map((f) => {
+        // 图片位：值是仓库相对路径，面板里只管选新图（发布时才真正上传并写路径）
+        if (f.type === "image") {
+          return (
+            '<label class="atext-field is-img">' +
+              '<span class="atf-label">' + esc(f.label) + "</span>" +
+              '<div class="atext-img">' +
+                '<img class="atf-preview" data-imgpreview="' + esc(f.key) + '" alt="">' +
+                '<div class="atf-imgside">' +
+                  '<input type="file" accept="image/*" data-imgkey="' + esc(f.key) + '">' +
+                  '<span class="atf-imgname" data-imgname="' + esc(f.key) + '"></span>' +
+                "</div>" +
+              "</div>" +
+            "</label>"
+          );
+        }
         const ctrl = f.type === "textarea"
           ? '<textarea data-textkey="' + esc(f.key) + '" rows="' + (f.rich ? 3 : 2) + '"></textarea>'
           : '<input type="text" data-textkey="' + esc(f.key) + '">';
@@ -788,19 +808,74 @@
         await updatePublishUI();
       });
     });
+
+    wireSiteImages(box);
+  }
+
+  // ---- 站点图片位：选图 → 裁切 → 存进 siteImgLib 草稿（发布时才上传） ----
+  function wireSiteImages(box) {
+    if (!window.siteImgLib) return;
+    box.querySelectorAll("[data-imgkey]").forEach((input) => {
+      const key = input.dataset.imgkey;
+      input.addEventListener("change", async () => {
+        if (!input.files[0]) return;
+        // 复用图廊那套：HEIC 转码 + 解码兜底 + 裁切器（自由比例，人像/合照都行）
+        const ok = await openEditorFor(input, {
+          name: "site-image.jpg",
+          statusSel: "#admin-text-status",
+          open: { mode: "crop", aspect: null }
+        });
+        const file = ok ? input.files[0] : null;
+        if (!file) { input.value = ""; await refreshSiteImage(key); return; }   // 取消 / 这张图用不了
+        await window.siteImgLib.set(key, file);
+        input.value = "";
+        await refreshSiteImage(key);
+        await updatePublishUI();
+        const st = $("#admin-text-status");
+        if (st) {
+          st.textContent = "新图已存成本地草稿，点「发布到线上」后生效 ✓";
+          setTimeout(() => { if (st.textContent.indexOf("新图已存") === 0) st.textContent = ""; }, 4000);
+        }
+      });
+    });
+    window.textLib.imageFields().forEach((f) => refreshSiteImage(f.key));
+  }
+
+  // 刷新某个图片位的预览与说明：有草稿显示草稿 blob，否则显示线上路径
+  async function refreshSiteImage(key) {
+    const img = document.querySelector('[data-imgpreview="' + key + '"]');
+    const name = document.querySelector('[data-imgname="' + key + '"]');
+    if (!img && !name) return;
+    const rec = window.siteImgLib ? await window.siteImgLib.getOne(key) : null;
+    if (rec) {
+      if (img) img.src = window.siteImgLib.previewUrl(rec);
+      if (name) {
+        name.textContent = "待发布的新图" + (rec.name ? "：" + rec.name : "");
+        name.classList.add("is-pending");
+      }
+    } else {
+      const path = window.textLib.get(key);
+      if (img) img.src = path || "";
+      if (name) {
+        name.textContent = path ? ("当前：" + path) : "还没有图";
+        name.classList.remove("is-pending");
+      }
+    }
   }
 
   function wireTextEditor() {
     const reset = $("#admin-text-reset");
     if (reset) {
       reset.addEventListener("click", async () => {
-        if (!window.textLib || window.textLib.pendingCount() === 0) {
+        const simgN = window.siteImgLib ? await window.siteImgLib.pendingCount() : 0;
+        if (!window.textLib || (window.textLib.pendingCount() === 0 && simgN === 0)) {
           $("#admin-text-status").textContent = "没有未发布的文案改动。";
           setTimeout(() => { $("#admin-text-status").textContent = ""; }, 2500);
           return;
         }
-        if (!confirm("撤销本次所有未发布的文案改动吗?(已发布的不受影响)")) return;
+        if (!confirm("撤销本次所有未发布的文案与站点图片改动吗?(已发布的不受影响)")) return;
         window.textLib.clearLocalAfterPublish();   // 清掉本地文案草稿
+        if (window.siteImgLib) await window.siteImgLib.clearLocalAfterPublish();   // 连带清掉没发布的换图
         window.textLib.render();
         renderTextEditor();
         await updatePublishUI();
@@ -933,11 +1008,12 @@
     const jourN = window.journalLib ? await window.journalLib.pendingCount() : 0;
     const orderN = window.musicLib.orderChanged() ? 1 : 0;
     const textN = window.textLib ? window.textLib.pendingCount() : 0;
+    const simgN = window.siteImgLib ? await window.siteImgLib.pendingCount() : 0;
     const n = drafts.length +
       window.musicLib.getLocalHidden().length +
       window.musicLib.getPendingUnhide().length +
       window.musicLib.getPendingDelete().length +
-      galN + jourN + orderN + textN;
+      galN + jourN + orderN + textN + simgN;
     const hasToken = window.publisher.hasToken();
     countEl.textContent = n === 0 ? "没有未发布的改动" : ("有 " + n + " 项未发布的改动");
     countEl.classList.toggle("has-changes", n > 0);
@@ -1030,7 +1106,8 @@
           (res.jourEdited ? ("更新随笔 " + res.jourEdited + " 篇。") : "") +
           (res.jourRemoved ? ("移除随笔 " + res.jourRemoved + " 篇。") : "") +
           (res.reordered ? "已更新展示顺序。" : "") +
-          (res.textChanged ? "已更新站点文案。" : "");
+          (res.textChanged ? "已更新站点文案。" : "") +
+          (res.siteImgs ? ("已更新站点图片 " + res.siteImgs + " 张。") : "");
         await refreshAll();
       } catch (err) {
         status.textContent = "✗ 发布失败:" + err.message;
@@ -1052,6 +1129,7 @@
     $("#af-en").value = rec.en || "";
     $("#af-year").value = rec.year || "";
     $("#af-role").value = rec.role || "";
+    if ($("#af-who")) $("#af-who").value = rec.who || "";
     $("#af-desc").value = rec.desc || "";
     if ($("#af-credits")) $("#af-credits").value = rec.credits || "";
     if ($("#af-lyrics")) $("#af-lyrics").value = rec.lyrics || "";
@@ -1127,6 +1205,7 @@
       const en = $("#af-en").value.trim();
       const year = $("#af-year").value.trim();
       const role = $("#af-role").value.trim();
+      const who = $("#af-who") ? $("#af-who").value : "";
       const desc = $("#af-desc").value.trim();
       const credits = $("#af-credits") ? $("#af-credits").value.trim() : "";
       const lyrics = $("#af-lyrics") ? $("#af-lyrics").value.trim() : "";
@@ -1156,14 +1235,14 @@
       status.textContent = editing ? "正在保存修改…" : "正在保存草稿…";
       try {
         if (editing) {
-          await window.musicLib.update(editing, { category, title, en, year, role, desc, credits, lyrics, audioFile, coverFile, videoUrl, videoFile });
+          await window.musicLib.update(editing, { category, title, en, year, role, who, desc, credits, lyrics, audioFile, coverFile, videoUrl, videoFile });
           editingId = null;
           form.reset();
           syncAudioRequirement();
           setEditMode(null);
           status.textContent = "已保存修改 ✓ —— 确认后点上方「发布到线上」";
         } else {
-          await window.musicLib.add({ category, title, en, year, role, desc, credits, lyrics, audioFile, coverFile, videoUrl, videoFile });
+          await window.musicLib.add({ category, title, en, year, role, who, desc, credits, lyrics, audioFile, coverFile, videoUrl, videoFile });
           form.reset();
           syncAudioRequirement();
           status.textContent = "已加入草稿 ✓ —— 确认后点上方「发布到线上」";
