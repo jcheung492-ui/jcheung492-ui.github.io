@@ -306,5 +306,6 @@ window.SITE_TEXT = {
   "cat.game.intro": "为独立游戏做的音乐。",
   "cat.film.intro": "参与过的影视项目。",
   "works.sub": "专辑、广告配乐、游戏配乐可以直接听；还是做了些作品的",
-  "about.fact1.dt": "演唱"
+  "about.fact1.dt": "演唱",
+  "site.portrait.kinwah": "uploads/site-site-portrait-kinwah-1786893878411.jpg"
 };
