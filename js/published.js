@@ -247,6 +247,12 @@ window.SITE_JOURNAL_PUBLISHED = [
     "date": "2026.06.22",
     "title": "关于这个领地的诞生",
     "body": "做了好久，终于出现了"
+  },
+  {
+    "id": "jcustom-1786894231248-2518",
+    "date": "2026.0816",
+    "title": "今天有新来宾",
+    "body": "没啥事，发发牢骚"
   }
 ];
 window.SITE_JOURNAL_HIDDEN = [
