@@ -14,8 +14,10 @@
   // type: "text"(单行) | "textarea"(多行) | "image"(站点图片,值=仓库相对路径)；rich:true 时支持 * ** 与换行
   const TEXT_FIELDS = [
     // —— 站点（导航 / 页脚 / 浏览器标题共用）——
-    // 导航左上角只留主名（副名「· 张百星 & KinWah」已按拍板去掉，副名字段一并下线）
-    { key: "site.name.main", group: "站点", label: "站名(导航左上角)", type: "text", def: "Soundtruth" },
+    // 站名 = 主名 + 点缀「·」+ 副名；导航左上角和浏览器标题都跟着走
+    // （「·」的点缀色由 css 的 .nav-name em 上；副名留空则只显示主名，「·」也一起隐藏）
+    { key: "site.name.main", group: "站点", label: "站名 · 主名", type: "text", def: "SoundTruth" },
+    { key: "site.name.sub", group: "站点", label: "站名 · 副名(点缀「·」之后，可留空)", type: "text", def: "拳头响了" },
 
     // —— 站点图片（type:"image"，值 = 仓库相对路径；在面板里直接换图）——
     { key: "site.portrait.duo", group: "站点图片", label: "首页 / 关于页 · 合照", type: "image", def: "portrait-duo.jpg" },
@@ -25,11 +27,11 @@
     // —— 首页 Hero ——
     { key: "home.hero.kicker", group: "首页 · Hero", label: "小标题(kicker)", type: "text", def: "Hello, we make music" },
     { key: "home.hero.title", group: "首页 · Hero", label: "大标题", type: "textarea", rich: true, def: "不用说话。\n坐一会儿，\n*把肩膀慢慢放下来*。" },
-    { key: "home.hero.line", group: "首页 · Hero", label: "自我介绍那句", type: "textarea", rich: true, def: "我们是 Soundtruth —— 张百星和 KinWah。一个管编曲和混音，一个管人声和配唱。可以随便听听，也可以留句话。*别急*。" },
+    { key: "home.hero.line", group: "首页 · Hero", label: "自我介绍那句", type: "textarea", rich: true, def: "我们是 SoundTruth·拳头响了 —— 张百星和 KinWah。一个管编曲和混音，一个管人声和配唱。可以随便听听，也可以留句话。*不急*。" },
     { key: "home.hero.roles", group: "首页 · Hero", label: "角色标签(用 / 分隔)", type: "text", def: "Producer / Arranger / Mixing / Vocal Production" },
     { key: "home.hero.cta1", group: "首页 · Hero", label: "主按钮文字", type: "text", def: "听听我们的作品" },
     { key: "home.hero.cta2", group: "首页 · Hero", label: "次按钮文字", type: "text", def: "关于我们" },
-    { key: "home.portrait.caption", group: "首页 · Hero", label: "头像说明", type: "text", def: "Soundtruth · 张百星 & KinWah" },
+    { key: "home.portrait.caption", group: "首页 · Hero", label: "头像说明", type: "text", def: "SoundTruth·拳头响了 · 张百星 & KinWah" },
 
     // —— 首页三入口 ——
     { key: "home.strip.works", group: "首页 · 三入口", label: "Works 说明", type: "text", def: "两个人的专辑、广告与游戏配乐、电影" },
@@ -64,7 +66,7 @@
     { key: "about.title", group: "关于页", label: "标题", type: "text", def: "关于我们" },
     { key: "about.sub", group: "关于页", label: "副标题", type: "text", def: "两个人，一间棚。" },
     { key: "about.portrait.caption", group: "关于页", label: "照片说明", type: "text", def: "工作室的某个下午" },
-    { key: "about.p1", group: "关于页", label: "正文 1", type: "textarea", rich: true, def: "**Soundtruth** 是**张百星（Justin）**和 **KinWah** 两个人的名字。一个从编曲、制作到混音，一个从录音、配唱到混音；有时各做各的，有时一首歌从头到尾一起过一遍。" },
+    { key: "about.p1", group: "关于页", label: "正文 1", type: "textarea", rich: true, def: "**SoundTruth·拳头响了** 是**张百星（Justin）**和 **KinWah** 两个人的组合。一个从编曲、制作到混音，一个从录音、配唱到混音；有时各做各的，有时一首歌从头到尾一起过一遍。" },
     { key: "about.p2", group: "关于页", label: "正文 2", type: "textarea", rich: true, def: "我们主要做**华语流行、动漫与日系、影视与游戏配乐**。粤语也能胜任。风格不算固定，也许你可以和我们聊聊你喜欢啥？" },
     { key: "about.p3", group: "关于页", label: "正文 3", type: "textarea", rich: true, def: "如果你有一首写到一半的歌、一段不知道怎么处理的旋律，或者只是想找人聊聊音乐，都欢迎来找我们。我们回消息可能慢，但一定会回。" },
     // —— 关于页 · 两位成员 ——
@@ -116,7 +118,7 @@
     { key: "cat.film.intro", group: "作品分类介绍", label: "电影", type: "textarea", def: "参与过的影视项目。音源大多归片方所有,这里以海报与一段文字留个念想。" },
 
     // —— 页脚 ——
-    { key: "footer.copy", group: "页脚", label: "版权那行", type: "text", def: "© 2026 Soundtruth · 张百星 & KinWah · 谢谢你听到这里" }
+    { key: "footer.copy", group: "页脚", label: "版权那行", type: "text", def: "© 2026 SoundTruth·拳头响了 · 谢谢你听到这里" }
   ];
 
   const FIELD_MAP = new Map(TEXT_FIELDS.map((f) => [f.key, f]));
@@ -190,6 +192,10 @@
     document.querySelectorAll("[data-img-key]").forEach((el) => {
       const v = get(el.getAttribute("data-img-key"));
       if (v) el.setAttribute("src", v);
+    });
+    // 站名副名留空时，把点缀「·」一起藏掉，免得导航上剩个孤零零的点
+    document.querySelectorAll(".nav-name em").forEach((el) => {
+      el.hidden = !get("site.name.sub").trim();
     });
   }
 

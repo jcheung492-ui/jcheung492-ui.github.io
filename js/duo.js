@@ -1,9 +1,10 @@
 // ============================================================
-// Soundtruth · 双人归属标签 + 作品筛选
+// SoundTruth · 双人归属标签 + 作品筛选
 //   纯前端、只读 DOM：不改动 player.js，靠它渲染出来的 data-id 反查数据。
 //   归属来源，按优先级：
 //     1) 作品自己的 who 字段（管理面板「归属」下拉，值 justin/kinwah/both）
-//     2) 老数据没有 who 时，退回到从「角色 / 标签」里正则猜人名
+//     2) 没有 who 时，从「角色 / 标签」里正则猜人名
+//     3) 还猜不出来 → 落到 DEFAULT_WHO（见下），不留「无归属」的孤儿
 //   本文件把归属变成 .who-chip 标签，并驱动作品页顶部的 #works-who 筛选条。
 // ============================================================
 (function () {
@@ -21,8 +22,16 @@
     kinwah: "这个分类还没有 KinWah 的作品。",
     both: "这个分类还没有双人合作的作品。"
   };
+  // 没标归属、正则也猜不出来时的兜底归属。
+  // 站点原有的 15 条作品都是张百星 Justin 的，who 字段又只能在管理面板里逐条补，
+  // 所以这里直接兜底成 justin：不标注 = 归 Justin，「全部」和「张百星 Justin」两个
+  // 筛选下看到的东西一致。以后 KinWah 的作品在面板里明确选一次归属即可覆盖它。
+  const DEFAULT_WHO = "justin";
+
   // 从 meta 行里剥掉名字（标签已经单独显示，避免重复）
   const STRIP = /(justin|张百星|百星|振钧|kin\s*[-·]?\s*wah|kinwah)/gi;
+  // 同一个模式的非全局版，只用来判断「这条 meta 里到底有没有人名」（/g 的 test 有 lastIndex 状态，不能复用）
+  const HAS_NAME = /(justin|张百星|百星|振钧|kin\s*[-·]?\s*wah|kinwah)/i;
 
   let busy = false;   // 自己改 DOM 时别让 observer 递归
 
@@ -76,7 +85,8 @@
     const real = whoMap.get(item.dataset.id || "");
     if (real) return real;                        // 真字段优先
     const meta = item.querySelector(".work-meta");
-    return whoOf(meta ? meta.textContent : "");   // 老数据降级走正则
+    const guess = whoOf(meta ? meta.textContent : "");
+    return guess === "none" ? DEFAULT_WHO : guess;   // 猜不出来就兜底，不返回 none
   }
 
   function chip(kind) {
@@ -105,7 +115,9 @@
           (who === "both" ? ["justin", "kinwah"] : [who]).forEach((k) => wrap.appendChild(chip(k)));
           title.appendChild(wrap);
         }
-        if (meta) {
+        // 只有 meta 里真的写了人名才需要剥（标签已经单独显示了，避免重复）。
+        // 没写人名的就别碰，否则 tidy() 会把「制作人/编曲/混音」重排成「制作人 / 编曲 / 混音」。
+        if (meta && HAS_NAME.test(meta.textContent)) {
           const rest = tidy(meta.textContent);
           if (rest) meta.textContent = rest;
           else meta.remove();
@@ -223,11 +235,19 @@
   }
 
   // 页面标题里的旧站名（在 router.js 里写死）替换成组合名，不动 router.js
+  function siteName() {
+    const t = window.textLib;
+    if (!t) return "SoundTruth";
+    const main = (t.get("site.name.main") || "").trim();
+    const sub = (t.get("site.name.sub") || "").trim();
+    if (!main) return sub || "SoundTruth";
+    return sub ? main + "\u00b7" + sub : main;   // \u4e0e\u5bfc\u822a\u5de6\u4e0a\u89d2\u4e00\u81f4\uff1a\u4e3b\u540d\u00b7\u526f\u540d
+  }
+
   function fixTitle() {
     if (document.title.indexOf("Justin\u2019s Space") >= 0) {
-      // \u7ad9\u540d\u4e3b\u540d\u53ef\u4ee5\u5728\u9762\u677f\u91cc\u6539\uff0c\u8fd9\u91cc\u8ddf\u7740\u8d70
-      const name = (window.textLib && window.textLib.get("site.name.main")) || "Soundtruth";
-      document.title = document.title.replace("Justin\u2019s Space", name);
+      // \u7ad9\u540d\u53ef\u4ee5\u5728\u9762\u677f\u91cc\u6539\uff0c\u6d4f\u89c8\u5668\u6807\u9898\u8ddf\u7740\u8d70
+      document.title = document.title.replace("Justin\u2019s Space", siteName());
     }
   }
 
