@@ -15,6 +15,7 @@
   const STORE = "tracks";
   const GAL_STORE = "gallery";               // 光影图廊的本地草稿
   const JOUR_STORE = "journal";              // 随笔的本地草稿
+  const SIMG_STORE = "siteimgs";             // 站点图片(合照/两人照片)的本地草稿,keyPath 是文案键名
   const HIDDEN_KEY = "bx-hidden-builtins";   // 草稿:待下架的默认作品 id
   const UNHIDE_KEY = "bx-pending-unhide";    // 草稿:待恢复上架的(已发布下架的)默认作品 id
   const DELETE_KEY = "bx-pending-delete";    // 草稿:待删除的已发布作品 id
@@ -30,7 +31,7 @@
 
   function openDB() {
     return new Promise((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, 3);
+      const req = indexedDB.open(DB_NAME, 4);
       req.onupgradeneeded = () => {
         const db = req.result;
         if (!db.objectStoreNames.contains(STORE)) {
@@ -41,6 +42,9 @@
         }
         if (!db.objectStoreNames.contains(JOUR_STORE)) {
           db.createObjectStore(JOUR_STORE, { keyPath: "id" });
+        }
+        if (!db.objectStoreNames.contains(SIMG_STORE)) {
+          db.createObjectStore(SIMG_STORE, { keyPath: "key" });
         }
       };
       req.onsuccess = () => resolve(req.result);
@@ -190,6 +194,7 @@
         en: rec.en || "",
         year: rec.year || "",
         role: rec.role || "",
+        who: rec.who || "",
         desc: rec.desc || "",
         src: objectUrls.get(rec.id + ":audio") || null,
         cover: objectUrls.get(rec.id + ":cover") || "covers/morning-mist.png",
@@ -212,6 +217,7 @@
         category: ed.category || t.category || "album",
         title: ed.title || "",
         en: ed.en || "", year: ed.year || "", role: ed.role || "", desc: ed.desc || "",
+        who: ed.who != null ? ed.who : (t.who || ""),
         cover: objectUrls.get(ed.id + ":cover") || t.cover || "covers/morning-mist.png",
         src: objectUrls.get(ed.id + ":audio") || t.src || null,
         video: objectUrls.get(ed.id + ":video") || ed.videoUrl || t.video || null,
@@ -221,11 +227,11 @@
     },
 
     // 新增一条本地草稿（尚未发布）。video 二选一：videoUrl（站外链接）或 videoFile（上传文件）
-    async add({ category, title, en, year, role, desc, credits, lyrics, audioFile, coverFile, videoUrl, videoFile }) {
+    async add({ category, title, en, year, role, who, desc, credits, lyrics, audioFile, coverFile, videoUrl, videoFile }) {
       const rec = {
         id: "custom-" + Date.now() + "-" + Math.floor(Math.random() * 1e4),
         category: category || "album",
-        title: title, en: en || "", year: year || "", role: role || "", desc: desc || "",
+        title: title, en: en || "", year: year || "", role: role || "", who: who || "", desc: desc || "",
         credits: credits || "", lyrics: lyrics || "",
         audioBlob: audioFile || null,
         coverBlob: coverFile || null,
@@ -254,7 +260,7 @@
     },
 
     // 修改一条本地草稿；不传新文件则保留原封面/音频/视频
-    async update(id, { category, title, en, year, role, desc, credits, lyrics, audioFile, coverFile, videoUrl, videoFile }) {
+    async update(id, { category, title, en, year, role, who, desc, credits, lyrics, audioFile, coverFile, videoUrl, videoFile }) {
       const rec = await this.getOne(id);
       if (!rec) throw new Error("草稿不存在（可能已删除）");
       rec.category = category || rec.category || "album";
@@ -262,6 +268,7 @@
       rec.en = en || "";
       rec.year = year || "";
       rec.role = role || "";
+      rec.who = who || "";
       rec.desc = desc || "";
       rec.credits = credits || "";
       rec.lyrics = lyrics || "";
@@ -305,7 +312,7 @@
         editOf: pub.id,
         category: pub.category || "album",
         title: pub.title || "", en: pub.en || "", year: pub.year || "",
-        role: pub.role || "", desc: pub.desc || "",
+        role: pub.role || "", who: pub.who || "", desc: pub.desc || "",
         credits: pub.credits || "", lyrics: pub.lyrics || "",
         origCover: pub.cover || "", origSrc: pub.src || "", origVideo: pub.video || "",
         audioBlob: null, coverBlob: null, videoBlob: null,
@@ -561,6 +568,65 @@
       setList(GAL_UNHIDE_KEY, []);
       setList(GAL_DELETE_KEY, []);
       localStorage.removeItem(GAL_ORDER_KEY);
+    }
+  };
+
+  // ============================================================
+  // 站点图片 siteImgLib —— 首页合照、关于页两张人物照
+  //   和作品/照片不同,这里没有「列表」概念:每个位置就是一条文案键(js/sitetext.js 里 type:"image"),
+  //   值是仓库相对路径。本库只暂存「换了图但还没发布」的 blob,
+  //   发布时由 publish.js 把 blob 提交进仓库,再把新路径写进文案草稿。
+  //   记录形如 { key, blob, name, createdAt }。
+  // ============================================================
+  const simgUrls = new Map();
+
+  window.siteImgLib = {
+    async getAll() {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const t = db.transaction(SIMG_STORE, "readonly");
+        const req = t.objectStore(SIMG_STORE).getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      });
+    },
+
+    async getOne(key) {
+      const all = await this.getAll();
+      return all.find((r) => r.key === key) || null;
+    },
+
+    // 存一张待发布的新图（同一个位置再选一次会覆盖）
+    async set(key, file) {
+      const rec = { key: key, blob: file, name: (file && file.name) || "", createdAt: Date.now() };
+      await txOn(SIMG_STORE, "readwrite", (s) => s.put(rec));
+      this.revoke(key);
+      return rec;
+    },
+
+    async remove(key) {
+      await txOn(SIMG_STORE, "readwrite", (s) => s.delete(key));
+      this.revoke(key);
+    },
+
+    // 预览用的 objectURL（同一张图复用，换图/删除时失效）
+    previewUrl(rec) {
+      if (!rec || !rec.blob) return "";
+      if (!simgUrls.has(rec.key)) simgUrls.set(rec.key, URL.createObjectURL(rec.blob));
+      return simgUrls.get(rec.key);
+    },
+    revoke(key) {
+      const u = simgUrls.get(key);
+      if (u) URL.revokeObjectURL(u);
+      simgUrls.delete(key);
+    },
+
+    async pendingCount() { return (await this.getAll()).length; },
+    async hasLocalChanges() { return (await this.pendingCount()) > 0; },
+
+    async clearLocalAfterPublish() {
+      const all = await this.getAll();
+      for (const r of all) await this.remove(r.key);
     }
   };
 

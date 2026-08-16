@@ -11,26 +11,42 @@
   const DRAFT_KEY = "bx-text-draft";
 
   // ---- 可编辑文案注册表：key / 分组 / 标签 / 控件类型 / 是否富文本 / 默认值 ----
-  // type: "text"(单行) | "textarea"(多行)；rich:true 时支持 * ** 与换行
+  // type: "text"(单行) | "textarea"(多行) | "image"(站点图片,值=仓库相对路径)；rich:true 时支持 * ** 与换行
   const TEXT_FIELDS = [
+    // —— 站点（导航 / 页脚 / 浏览器标题共用）——
+    // 站名 = 主名 + 点缀「·」+ 副名；导航左上角和浏览器标题都跟着走
+    // （「·」的点缀色由 css 的 .nav-name em 上；副名留空则只显示主名，「·」也一起隐藏）
+    { key: "site.name.main", group: "站点", label: "站名 · 主名", type: "text", def: "SoundTruth" },
+    { key: "site.name.sub", group: "站点", label: "站名 · 副名(点缀「·」之后，可留空)", type: "text", def: "拳头响了" },
+
+    // —— 站点图片（type:"image"，值 = 仓库相对路径；在面板里直接换图）——
+    { key: "site.portrait.duo", group: "站点图片", label: "首页 / 关于页 · 合照", type: "image", def: "portrait-duo.jpg" },
+    { key: "site.portrait.justin", group: "站点图片", label: "关于页 · 张百星照片", type: "image", def: "portrait.jpg" },
+    { key: "site.portrait.kinwah", group: "站点图片", label: "关于页 · KinWah 照片", type: "image", def: "portrait-kinwah.jpg" },
+
     // —— 首页 Hero ——
-    { key: "home.hero.kicker", group: "首页 · Hero", label: "小标题(kicker)", type: "text", def: "Hello, I make music" },
+    { key: "home.hero.kicker", group: "首页 · Hero", label: "小标题(kicker)", type: "text", def: "Hello, we make music" },
     { key: "home.hero.title", group: "首页 · Hero", label: "大标题", type: "textarea", rich: true, def: "不用说话。\n坐一会儿，\n*把肩膀慢慢放下来*。" },
-    { key: "home.hero.line", group: "首页 · Hero", label: "自我介绍那句", type: "textarea", rich: true, def: "我是 Justin，振钧、百星，都是我。可以随便听听，也可以留句话。*别急*。" },
-    { key: "home.hero.roles", group: "首页 · Hero", label: "角色标签(用 / 分隔)", type: "text", def: "Producer / Arranger / Mixing Engineer" },
-    { key: "home.hero.cta1", group: "首页 · Hero", label: "主按钮文字", type: "text", def: "听听我的作品" },
-    { key: "home.hero.cta2", group: "首页 · Hero", label: "次按钮文字", type: "text", def: "关于我" },
-    { key: "home.portrait.caption", group: "首页 · Hero", label: "头像说明", type: "text", def: "张百星 / Justin" },
+    { key: "home.hero.line", group: "首页 · Hero", label: "自我介绍那句", type: "textarea", rich: true, def: "我们是 SoundTruth·拳头响了 —— 张百星和 KinWah。一个管编曲和混音，一个管人声和配唱。可以随便听听，也可以留句话。*不急*。" },
+    { key: "home.hero.roles", group: "首页 · Hero", label: "角色标签(用 / 分隔)", type: "text", def: "Producer / Arranger / Mixing / Vocal Production" },
+    { key: "home.hero.cta1", group: "首页 · Hero", label: "主按钮文字", type: "text", def: "听听我们的作品" },
+    { key: "home.hero.cta2", group: "首页 · Hero", label: "次按钮文字", type: "text", def: "关于我们" },
+    { key: "home.portrait.caption", group: "首页 · Hero", label: "头像说明", type: "text", def: "SoundTruth·拳头响了 · 张百星 & KinWah" },
 
     // —— 首页三入口 ——
-    { key: "home.strip.works", group: "首页 · 三入口", label: "Works 说明", type: "text", def: "专辑、广告与游戏配乐、电影" },
+    { key: "home.strip.works", group: "首页 · 三入口", label: "Works 说明", type: "text", def: "两个人的专辑、广告与游戏配乐、电影" },
     { key: "home.strip.journal", group: "首页 · 三入口", label: "Journal 说明", type: "text", def: "生活，和一些没写进歌里的话" },
     { key: "home.strip.guestbook", group: "首页 · 三入口", label: "Guestbook 说明", type: "text", def: "音乐树洞 · 说点什么都行" },
 
     // —— 作品页 ——
     { key: "works.kicker", group: "作品页", label: "小标题", type: "text", def: "Works" },
     { key: "works.title", group: "作品页", label: "标题", type: "text", def: "作品" },
-    { key: "works.sub", group: "作品页", label: "副标题", type: "textarea", def: "专辑、广告配乐、游戏配乐可以直接听；电影部分只放海报与一段文字。" },
+    { key: "works.sub", group: "作品页", label: "副标题", type: "textarea", def: "专辑、广告配乐、游戏配乐可以直接听；电影部分只放海报与一段文字。每条作品标着是谁做的，上面可以按人筛选。" },
+    // 作品页顶部的按人筛选按钮（对应作品表单里的「归属」下拉）
+    { key: "works.who.all", group: "作品页 · 筛选", label: "按钮1 · 全部", type: "text", def: "全部" },
+    { key: "works.who.justin", group: "作品页 · 筛选", label: "按钮2 · 第一人", type: "text", def: "张百星 Justin" },
+    { key: "works.who.kinwah", group: "作品页 · 筛选", label: "按钮3 · 第二人", type: "text", def: "KinWah" },
+    { key: "works.who.both", group: "作品页 · 筛选", label: "按钮4 · 双人合作", type: "text", def: "双人合作" },
 
     // —— 随手录页 ——
     { key: "sketches.kicker", group: "随手录页", label: "小标题", type: "text", def: "Sketchbook" },
@@ -43,18 +59,28 @@
     { key: "journal.sub", group: "随笔页 · 光影", label: "随笔副标题", type: "textarea", def: "不定期更新的小随笔。想改、想加,直接编辑这一段的文字就好。" },
     { key: "gallery.kicker", group: "随笔页 · 光影", label: "光影小标题", type: "text", def: "Gallery" },
     { key: "gallery.title", group: "随笔页 · 光影", label: "光影标题", type: "text", def: "光影" },
-    { key: "gallery.sub", group: "随笔页 · 光影", label: "光影副标题", type: "textarea", def: "一些我觉得好看的风景和工作照。点开任意一张,有一行字。" },
+    { key: "gallery.sub", group: "随笔页 · 光影", label: "光影副标题", type: "textarea", def: "一些我们觉得好看的风景和工作照。点开任意一张,有一行字。" },
 
     // —— 关于页 ——
     { key: "about.kicker", group: "关于页", label: "小标题", type: "text", def: "About" },
-    { key: "about.title", group: "关于页", label: "标题", type: "text", def: "关于我" },
-    { key: "about.sub", group: "关于页", label: "副标题", type: "text", def: "一个在公司上班的音乐人。" },
+    { key: "about.title", group: "关于页", label: "标题", type: "text", def: "关于我们" },
+    { key: "about.sub", group: "关于页", label: "副标题", type: "text", def: "两个人，一间棚。" },
     { key: "about.portrait.caption", group: "关于页", label: "照片说明", type: "text", def: "工作室的某个下午" },
-    { key: "about.p1", group: "关于页", label: "正文 1", type: "textarea", rich: true, def: "**张百星（Justin）**，音乐人，制作人。白天在公司做音频相关的工作，是同事眼里「管声音的人」；下班以后继续做音乐，是自己。" },
-    { key: "about.p2", group: "关于页", label: "正文 2", type: "textarea", rich: true, def: "主要做**编曲、制作和混音**。华语流行、配乐、Ballad——不算固定，也许你可以和我聊聊你喜欢啥？" },
-    { key: "about.p3", group: "关于页", label: "正文 3", type: "textarea", rich: true, def: "如果你有一首写到一半的歌、一段不知道怎么处理的旋律，或者只是想找人聊聊音乐，都欢迎来找我。我回消息可能慢，但一定会回。" },
+    { key: "about.p1", group: "关于页", label: "正文 1", type: "textarea", rich: true, def: "**SoundTruth·拳头响了** 是**张百星（Justin）**和 **KinWah** 两个人的组合。一个从编曲、制作到混音，一个从录音、配唱到混音；有时各做各的，有时一首歌从头到尾一起过一遍。" },
+    { key: "about.p2", group: "关于页", label: "正文 2", type: "textarea", rich: true, def: "我们主要做**华语流行、动漫与日系、影视与游戏配乐**。粤语也能胜任。风格不算固定，也许你可以和我们聊聊你喜欢啥？" },
+    { key: "about.p3", group: "关于页", label: "正文 3", type: "textarea", rich: true, def: "如果你有一首写到一半的歌、一段不知道怎么处理的旋律，或者只是想找人聊聊音乐，都欢迎来找我们。我们回消息可能慢，但一定会回。" },
+    // —— 关于页 · 两位成员 ——
+    { key: "about.j.en", group: "关于页 · 张百星", label: "英文名", type: "text", def: "Justin Zhang" },
+    { key: "about.j.name", group: "关于页 · 张百星", label: "姓名", type: "text", def: "张百星 Justin" },
+    { key: "about.j.role", group: "关于页 · 张百星", label: "角色", type: "text", def: "制作人 / 编曲 / 混音工程师" },
+    { key: "about.j.bio", group: "关于页 · 张百星", label: "简介", type: "textarea", rich: true, def: "音乐人，制作人。白天在公司做音频相关的工作，是同事眼里「管声音的人」；下班以后继续做音乐，是自己。主要做**编曲、制作和混音**，华语流行、配乐、Ballad 都写。" },
+    { key: "about.k.en", group: "关于页 · KinWah", label: "英文名", type: "text", def: "KinWah" },
+    { key: "about.k.name", group: "关于页 · KinWah", label: "姓名", type: "text", def: "KinWah" },
+    { key: "about.k.role", group: "关于页 · KinWah", label: "角色", type: "text", def: "录音 / 混音 / 配唱制作人" },
+    { key: "about.k.bio", group: "关于页 · KinWah", label: "简介", type: "textarea", rich: true, def: "一个和声干得比混音多的 Vocal Producer —— 但请相信我真的有好好研究混音。**录音、混音、配唱制作**是我的主要业务，华语流行、动漫歌曲、日系都是我擅长的方向，粤语也能够胜任。\nKinWah 是我名字的粤语发音，最开始是业内偶像 Alex Fung 这么喊我，后来就沿用了。遇到音乐上的问题，慢慢聊，或者快快做，都可以。" },
+
     { key: "about.fact1.dt", group: "关于页 · 信息", label: "第1项 名称", type: "text", def: "角色" },
-    { key: "about.fact1.dd", group: "关于页 · 信息", label: "第1项 内容", type: "text", def: "制作人 / 编曲 / 混音工程师" },
+    { key: "about.fact1.dd", group: "关于页 · 信息", label: "第1项 内容", type: "text", def: "制作 / 编曲 / 混音 · 录音 / 配唱制作" },
     { key: "about.fact2.dt", group: "关于页 · 信息", label: "第2项 名称", type: "text", def: "常驻" },
     { key: "about.fact2.dd", group: "关于页 · 信息", label: "第2项 内容", type: "text", def: "中国 · 深圳" },
     { key: "about.fact3.dt", group: "关于页 · 信息", label: "第3项 名称", type: "text", def: "合作方式" },
@@ -69,15 +95,18 @@
 
     // —— 联系页 ——
     { key: "contact.kicker", group: "联系页", label: "小标题", type: "text", def: "Contact" },
-    { key: "contact.title", group: "联系页", label: "标题", type: "text", def: "找到我" },
+    { key: "contact.title", group: "联系页", label: "标题", type: "text", def: "找到我们" },
     { key: "contact.sub", group: "联系页", label: "副标题", type: "text", def: "关于合作、关于歌，或者只是打个招呼。" },
     { key: "contact.email.label", group: "联系页 · Email", label: "卡片标题", type: "text", def: "Email" },
-    { key: "contact.email.value", group: "联系页 · Email", label: "邮箱地址(也是点击链接)", type: "text", def: "hello@justinzhang.example" },
-    { key: "contact.email.sub", group: "联系页 · Email", label: "小字", type: "text", def: "最稳妥的方式,24–48 小时内回复" },
-    { key: "contact.wechat.label", group: "联系页 · 微信", label: "卡片标题", type: "text", def: "微信" },
+    { key: "contact.email.value", group: "联系页 · Email", label: "邮箱地址(也是点击链接)", type: "text", def: "hello@sound-truth.com" },
+    { key: "contact.email.sub", group: "联系页 · Email", label: "小字", type: "text", def: "组合共用邮箱,最稳妥的方式,24–48 小时内回复" },
+    { key: "contact.wechat.label", group: "联系页 · 微信(张百星)", label: "卡片标题", type: "text", def: "微信 · 张百星" },
     { key: "contact.wechat.value", group: "联系页 · 微信", label: "微信号", type: "text", def: "justin_bx(改成你的)" },
     { key: "contact.wechat.sub", group: "联系页 · 微信", label: "小字", type: "text", def: "加好友时备注「音乐」会更快通过" },
-    { key: "contact.listen.label", group: "联系页 · 听歌", label: "卡片标题", type: "text", def: "听我的歌" },
+    { key: "contact.wechat2.label", group: "联系页 · 微信(KinWah)", label: "卡片标题", type: "text", def: "微信 · KinWah" },
+    { key: "contact.wechat2.value", group: "联系页 · 微信(KinWah)", label: "微信号", type: "text", def: "kinwah(改成他的)" },
+    { key: "contact.wechat2.sub", group: "联系页 · 微信(KinWah)", label: "小字", type: "text", def: "录音、配唱、混音的事找他更快" },
+    { key: "contact.listen.label", group: "联系页 · 听歌", label: "卡片标题", type: "text", def: "听我们的歌" },
     { key: "contact.listen.text", group: "联系页 · 听歌", label: "链接文字", type: "text", def: "网易云音乐 · 待填链接" },
     { key: "contact.listen.url", group: "联系页 · 听歌", label: "链接地址(URL)", type: "text", def: "#/works" },
     { key: "contact.listen.sub", group: "联系页 · 听歌", label: "小字", type: "text", def: "也可以换成 QQ 音乐 / B 站 / 小红书" },
@@ -89,7 +118,7 @@
     { key: "cat.film.intro", group: "作品分类介绍", label: "电影", type: "textarea", def: "参与过的影视项目。音源大多归片方所有,这里以海报与一段文字留个念想。" },
 
     // —— 页脚 ——
-    { key: "footer.copy", group: "页脚", label: "版权那行", type: "text", def: "© 2026 张百星 Justin · 谢谢你听到这里" }
+    { key: "footer.copy", group: "页脚", label: "版权那行", type: "text", def: "© 2026 SoundTruth·拳头响了 · 谢谢你听到这里" }
   ];
 
   const FIELD_MAP = new Map(TEXT_FIELDS.map((f) => [f.key, f]));
@@ -159,6 +188,15 @@
       const prefix = el.getAttribute("data-href-prefix") || "";
       el.setAttribute("href", prefix + (get(el.getAttribute("data-href-key")) || ""));
     });
+    // 站点图片：值就是仓库相对路径，直接写 src（HTML 里的 src 只是 JS 没跑起来时的兜底）
+    document.querySelectorAll("[data-img-key]").forEach((el) => {
+      const v = get(el.getAttribute("data-img-key"));
+      if (v) el.setAttribute("src", v);
+    });
+    // 站名副名留空时，把点缀「·」一起藏掉，免得导航上剩个孤零零的点
+    document.querySelectorAll(".nav-name em").forEach((el) => {
+      el.hidden = !get("site.name.sub").trim();
+    });
   }
 
   window.textLib = {
@@ -172,6 +210,9 @@
       }
       return order.map((g) => ({ group: g, fields: map.get(g) }));
     },
+    // 给管理面板：站点图片类字段（type:"image"），值是仓库相对路径
+    imageFields() { return TEXT_FIELDS.filter((f) => f.type === "image"); },
+    isImageKey(key) { const f = FIELD_MAP.get(key); return !!(f && f.type === "image"); },
     get, setDraft, render,
     getDrafts() { return loadDraft(); },
     // 未发布的文案改动条数

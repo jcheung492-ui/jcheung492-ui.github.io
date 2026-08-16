@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Justin’s Space</title>
+<title>SoundTruth·拳头响了</title>
 <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32.png?v=1">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16.png?v=1">
 <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png?v=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/site.css?v=29">
+<link rel="stylesheet" href="css/site.css?v=31">
 <link rel="stylesheet" href="css/clock.css?v=1">
 </head>
 <body class="texture-on">
@@ -18,17 +18,16 @@
 <template id="__bundler_thumbnail">
   <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
     <rect width="100" height="100" fill="#f7f3ec"></rect>
-    <circle cx="50" cy="44" r="20" fill="none" stroke="#a96a3c" stroke-width="2.5"></circle>
-    <circle cx="50" cy="44" r="4" fill="#a96a3c"></circle>
-    <path d="M50 24 v-7 M64 30 l5 -5 M36 30 l-5 -5" stroke="#2b2723" stroke-width="2" stroke-linecap="round"></path>
-    <text x="50" y="82" font-family="Georgia, serif" font-size="13" fill="#2b2723" text-anchor="middle">Justin</text>
+    <circle cx="38" cy="42" r="15" fill="none" stroke="#a96a3c" stroke-width="2.5"></circle>
+    <circle cx="62" cy="42" r="15" fill="none" stroke="#2b2723" stroke-width="2.5"></circle>
+    <text x="50" y="82" font-family="Georgia, serif" font-size="13" fill="#2b2723" text-anchor="middle">SoundTruth</text>
   </svg>
 </template>
 
 <!-- ===================== 常驻 banner / 导航 ===================== -->
 <nav class="site-nav" data-screen-label="导航">
   <div class="wrap">
-    <a class="nav-name" href="#/" data-nav="home">张百星 <em>·</em> Justin</a>
+    <a class="nav-name" href="#/" data-nav="home"><span data-text="site.name.main">SoundTruth</span><em>·</em><span data-text="site.name.sub">拳头响了</span></a>
     <div class="nav-links">
       <a href="#/works" data-nav="works">Works</a>
       <a href="#/journal" data-nav="journal">Journal</a>
@@ -55,11 +54,11 @@
   <header class="hero">
     <div class="wrap hero-grid">
       <div>
-        <p class="kicker" data-text="home.hero.kicker">Hello, I make music</p>
+        <p class="kicker" data-text="home.hero.kicker">Hello, we make music</p>
         <h1 data-text="home.hero.title">不用说话。<br>坐一会儿，<br><em>把肩膀慢慢放下来</em>。</h1>
-        <p class="hero-line" data-text="home.hero.line">我是 Justin，振钧、百星，都是我。可以随便听听，也可以留句话。<em>别急</em>。</p>
+        <p class="hero-line" data-text="home.hero.line">我们是 SoundTruth·拳头响了 —— 张百星和 KinWah。一个管编曲和混音，一个管人声和配唱。可以随便听听，也可以留句话。<em>不急</em>。</p>
         <div class="hero-roles" data-text-list="home.hero.roles">
-          <span>Producer</span><span>Arranger</span><span>Mixing Engineer</span>
+          <span>Producer</span><span>Arranger</span><span>Mixing</span><span>Vocal Production</span>
         </div>
         <div class="hero-wave" aria-hidden="true">
           <svg viewBox="0 0 420 38" focusable="false">
@@ -68,13 +67,13 @@
           </svg>
         </div>
         <div class="hero-ctas">
-          <a class="hero-cta" href="#/works"><span class="dot"></span><span data-text="home.hero.cta1">听听我的作品</span></a>
-          <a class="hero-cta ghost" href="#/about" data-text="home.hero.cta2">关于我</a>
+          <a class="hero-cta" href="#/works"><span class="dot"></span><span data-text="home.hero.cta1">听听我们的作品</span></a>
+          <a class="hero-cta ghost" href="#/about" data-text="home.hero.cta2">关于我们</a>
         </div>
       </div>
       <figure class="portrait-frame">
-        <img class="portrait-img ph-portrait" src="portrait.jpg?v=26" alt="张百星 / Justin" loading="lazy">
-        <figcaption data-text="home.portrait.caption">张百星 / Justin</figcaption>
+        <img class="portrait-img ph-portrait" src="portrait-duo.jpg?v=1" data-img-key="site.portrait.duo" alt="SoundTruth·拳头响了 · 张百星 与 KinWah" loading="lazy">
+        <figcaption data-text="home.portrait.caption">SoundTruth·拳头响了 · 张百星 &amp; KinWah</figcaption>
       </figure>
     </div>
   </header>
@@ -82,7 +81,7 @@
     <div class="wrap">
       <a class="strip-link" href="#/works">
         <span class="strip-en">Works</span>
-        <span class="strip-cn" data-text="home.strip.works">专辑、广告与游戏配乐、电影</span>
+        <span class="strip-cn" data-text="home.strip.works">两个人的专辑、广告与游戏配乐、电影</span>
         <span class="strip-arrow">→</span>
       </a>
       <a class="strip-link" href="#/journal">
@@ -105,16 +104,23 @@
     <div class="wrap">
       <p class="kicker" data-text="works.kicker">Works</p>
       <h1 class="page-title" data-text="works.title">作品</h1>
-      <p class="page-sub" data-text="works.sub">专辑、广告配乐、游戏配乐可以直接听；电影部分只放海报与一段文字。</p>
+      <p class="page-sub" data-text="works.sub">专辑、广告配乐、游戏配乐可以直接听；电影部分只放海报与一段文字。每条作品右上角标着是谁做的。</p>
     </div>
   </div>
   <div class="wrap">
+    <!-- 双人筛选：按作品「角色 / 标签」里的名字过滤，纯前端，由 js/duo.js 驱动 -->
+    <div class="who-filter" id="works-who" role="group" aria-label="按成员筛选作品">
+      <button class="who-btn is-active" type="button" data-who="all" data-text="works.who.all">全部</button>
+      <button class="who-btn" type="button" data-who="justin" data-text="works.who.justin">张百星 Justin</button>
+      <button class="who-btn" type="button" data-who="kinwah" data-text="works.who.kinwah">KinWah</button>
+      <button class="who-btn" type="button" data-who="both" data-text="works.who.both">双人合作</button>
+    </div>
     <div id="works-cats"></div>
 
     <!-- 管理面板:页脚点「管理」后出现 -->
     <div class="admin-panel" id="admin-panel">
       <h3>上架 / 管理作品</h3>
-      <p class="admin-note">封面是每条作品的必填项；专辑/广告/游戏还需要音频文件，电影类可只放封面。改动会先存成<strong>本地草稿</strong>（只有你自己看得到），确认无误后点下方<strong>「发布到线上」</strong>一次性提交，约 1 分钟后所有人可见。</p>
+      <p class="admin-note">封面是每条作品的必填项；专辑/广告/游戏还需要音频文件，电影类可只放封面。每条作品记得选一个<strong>「归属」</strong>（张百星 / KinWah / 双人合作），作品页会显示归属标签并支持按人筛选。改动会先存成<strong>本地草稿</strong>（只有你自己看得到），确认无误后点下方<strong>「发布到线上」</strong>一次性提交，约 1 分钟后所有人可见。</p>
 
       <!-- 发布栏:未发布改动 + 一键发布 + Token 设置 -->
       <div class="admin-publish" id="admin-publish-bar">
@@ -163,8 +169,16 @@
         <label>英文名(可选)
           <input type="text" id="af-en" placeholder="Summer Night Breeze" autocomplete="off">
         </label>
-        <label>角色 / 标签(可选)
-          <input type="text" id="af-role" placeholder="制作 / 编曲 / 混音" autocomplete="off">
+        <label>角色 / 标签
+          <input type="text" id="af-role" placeholder="比如:编曲 / 混音" autocomplete="off">
+        </label>
+        <label>归属(作品页按人筛选用)
+          <select id="af-who">
+            <option value="">未标注</option>
+            <option value="justin">张百星 Justin</option>
+            <option value="kinwah">KinWah</option>
+            <option value="both">双人合作</option>
+          </select>
         </label>
         <label id="af-audio-label">
           <span class="lbl">音频文件 (mp3 / wav / m4a)</span>
@@ -301,7 +315,7 @@
       <div class="gallery-head">
         <p class="kicker" data-text="gallery.kicker">Gallery</p>
         <h2 class="gallery-title" data-text="gallery.title">光影</h2>
-        <p class="gallery-sub" data-text="gallery.sub">一些我觉得好看的风景和工作照。点开任意一张,有一行字。</p>
+        <p class="gallery-sub" data-text="gallery.sub">一些我们觉得好看的风景和工作照。点开任意一张,有一行字。</p>
       </div>
       <div class="gallery-grid" id="gallery-grid"></div>
     </section>
@@ -323,28 +337,51 @@
   <div class="page-head">
     <div class="wrap">
       <p class="kicker" data-text="about.kicker">About</p>
-      <h1 class="page-title" data-text="about.title">关于我</h1>
-      <p class="page-sub" data-text="about.sub">一个在公司上班的音乐人。</p>
+      <h1 class="page-title" data-text="about.title">关于我们</h1>
+      <p class="page-sub" data-text="about.sub">两个人，一间棚。</p>
     </div>
   </div>
   <div class="wrap">
+    <!-- 组合简介：沿用原「照片 + 正文」两栏 -->
     <div class="about-grid">
       <figure class="portrait-frame" style="transform: rotate(-1deg);">
-        <img class="portrait-img ph-about" src="portrait.jpg?v=26" alt="工作室的某个下午" loading="lazy">
+        <img class="portrait-img ph-about" src="portrait-duo.jpg?v=1" data-img-key="site.portrait.duo" alt="工作室的某个下午" loading="lazy">
         <figcaption data-text="about.portrait.caption">工作室的某个下午</figcaption>
       </figure>
       <div class="about-text">
-        <p data-text="about.p1"><strong>张百星（Justin）</strong>，音乐人，制作人。白天在公司做音频相关的工作，是同事眼里「管声音的人」；下班以后继续做音乐，是自己。</p>
-        <p data-text="about.p2">主要做<strong>编曲、制作和混音</strong>。华语流行、配乐、Ballad——不算固定，也许你可以和我聊聊你喜欢啥？</p>
-        <p data-text="about.p3">如果你有一首写到一半的歌、一段不知道怎么处理的旋律，或者只是想找人聊聊音乐，都欢迎来找我。我回消息可能慢，但一定会回。</p>
+        <p data-text="about.p1"><strong>SoundTruth·拳头响了</strong> 是<strong>张百星（Justin）</strong>和 <strong>KinWah</strong> 两个人的组合。一个从编曲、制作到混音，一个从录音、配唱到混音；有时各做各的，有时一首歌从头到尾一起过一遍。</p>
+        <p data-text="about.p2">我们主要做<strong>华语流行、动漫与日系、影视与游戏配乐</strong>。粤语也能胜任。风格不算固定，也许你可以和我们聊聊你喜欢啥？</p>
+        <p data-text="about.p3">如果你有一首写到一半的歌、一段不知道怎么处理的旋律，或者只是想找人聊聊音乐，都欢迎来找我们。我们回消息可能慢，但一定会回。</p>
         <dl class="about-facts">
-          <div class="about-fact"><dt data-text="about.fact1.dt">角色</dt><dd data-text="about.fact1.dd">制作人 / 编曲 / 混音工程师</dd></div>
+          <div class="about-fact"><dt data-text="about.fact1.dt">角色</dt><dd data-text="about.fact1.dd">制作 / 编曲 / 混音 · 录音 / 配唱制作</dd></div>
           <div class="about-fact"><dt data-text="about.fact2.dt">常驻</dt><dd data-text="about.fact2.dd">中国 · 深圳</dd></div>
           <div class="about-fact"><dt data-text="about.fact3.dt">合作方式</dt><dd data-text="about.fact3.dd">远程为主,可约线下;先聊歌,再聊别的</dd></div>
           <div class="about-fact"><dt data-text="about.fact4.dt">最近在做</dt><dd data-text="about.fact4.dd">夏日企划</dd></div>
         </dl>
       </div>
     </div>
+
+    <!-- 两个人各自的简介：并排两张玻璃卡片 -->
+    <section class="about-duo" aria-label="成员">
+      <article class="about-person">
+        <figure class="portrait-frame person-photo">
+          <img class="portrait-img ph-about" src="portrait.jpg?v=26" data-img-key="site.portrait.justin" alt="张百星 Justin">
+        </figure>
+        <p class="person-en" data-text="about.j.en">Justin Zhang</p>
+        <h2 class="person-name" data-text="about.j.name">张百星 Justin</h2>
+        <p class="person-role" data-text="about.j.role">制作人 / 编曲 / 混音工程师</p>
+        <p class="person-bio" data-text="about.j.bio">音乐人，制作人。白天在公司做音频相关的工作，是同事眼里「管声音的人」；下班以后继续做音乐，是自己。主要做编曲、制作和混音，华语流行、配乐、Ballad 都写。</p>
+      </article>
+      <article class="about-person">
+        <figure class="portrait-frame person-photo">
+          <img class="portrait-img ph-about" src="portrait-kinwah.jpg?v=1" data-img-key="site.portrait.kinwah" alt="KinWah">
+        </figure>
+        <p class="person-en" data-text="about.k.en">KinWah</p>
+        <h2 class="person-name" data-text="about.k.name">KinWah</h2>
+        <p class="person-role" data-text="about.k.role">录音 / 混音 / 配唱制作人</p>
+        <p class="person-bio" data-text="about.k.bio">一个和声干得比混音多的 Vocal Producer —— 但请相信我真的有好好研究混音。录音、混音、配唱制作是我的主要业务，华语流行、动漫歌曲、日系都是我擅长的方向，粤语也能够胜任。KinWah 是我名字的粤语发音，最开始是业内偶像 Alex Fung 这么喊我，后来就沿用了。遇到音乐上的问题，慢慢聊，或者快快做，都可以。</p>
+      </article>
+    </section>
   </div>
 </div>
 
@@ -377,7 +414,7 @@
   <div class="page-head">
     <div class="wrap">
       <p class="kicker" data-text="contact.kicker">Contact</p>
-      <h1 class="page-title" data-text="contact.title">找到我</h1>
+      <h1 class="page-title" data-text="contact.title">找到我们</h1>
       <p class="page-sub" data-text="contact.sub">关于合作、关于歌，或者只是打个招呼。</p>
     </div>
   </div>
@@ -385,16 +422,21 @@
     <div class="contact-grid">
       <div class="contact-card">
         <h3 data-text="contact.email.label">Email</h3>
-        <p><a href="mailto:hello@justinzhang.example" data-text="contact.email.value" data-href-key="contact.email.value" data-href-prefix="mailto:">hello@justinzhang.example</a>
-        <span class="sub" data-text="contact.email.sub">最稳妥的方式,24–48 小时内回复</span></p>
+        <p><a href="mailto:hello@sound-truth.com" data-text="contact.email.value" data-href-key="contact.email.value" data-href-prefix="mailto:">hello@sound-truth.com</a>
+        <span class="sub" data-text="contact.email.sub">组合共用邮箱,最稳妥的方式,24–48 小时内回复</span></p>
       </div>
       <div class="contact-card">
-        <h3 data-text="contact.wechat.label">微信</h3>
+        <h3 data-text="contact.wechat.label">微信 · 张百星</h3>
         <p><span data-text="contact.wechat.value">justin_bx(改成你的)</span>
         <span class="sub" data-text="contact.wechat.sub">加好友时备注「音乐」会更快通过</span></p>
       </div>
       <div class="contact-card">
-        <h3 data-text="contact.listen.label">听我的歌</h3>
+        <h3 data-text="contact.wechat2.label">微信 · KinWah</h3>
+        <p><span data-text="contact.wechat2.value">kinwah(改成他的)</span>
+        <span class="sub" data-text="contact.wechat2.sub">录音、配唱、混音的事找他更快</span></p>
+      </div>
+      <div class="contact-card">
+        <h3 data-text="contact.listen.label">听我们的歌</h3>
         <p><a href="#/works" data-text="contact.listen.text" data-href-key="contact.listen.url">网易云音乐 · 待填链接</a>
         <span class="sub" data-text="contact.listen.sub">也可以换成 QQ 音乐 / B 站 / 小红书</span></p>
       </div>
@@ -407,7 +449,7 @@
 <!-- ===================== 页脚 ===================== -->
 <footer data-screen-label="页脚">
   <div class="wrap">
-    <span class="foot-copy" data-text="footer.copy">© 2026 张百星 Justin · 谢谢你听到这里</span>
+    <span class="foot-copy" data-text="footer.copy">© 2026 SoundTruth·拳头响了 · 谢谢你听到这里</span>
     <button class="admin-link" id="admin-toggle" type="button" hidden>⚙ 管理</button>
   </div>
 </footer>
@@ -438,21 +480,23 @@
 <script src="js/data.js?v=26"></script>
 <!-- published.js 每次「发布」都会变,必须每次取最新:用时间戳绕过浏览器/CDN 缓存,否则会看到旧数据(已删的照片回来、新图不显示) -->
 <script>document.write('<script src="js/published.js?t=' + Date.now() + '"><\/script>');</script>
-<script src="js/sitetext.js?v=26"></script>
-<script src="js/library.js?v=27"></script>
-<script src="js/publish.js?v=27"></script>
+<script src="js/sitetext.js?v=30"></script>
+<script src="js/library.js?v=28"></script>
+<script src="js/publish.js?v=28"></script>
 <script src="js/supabase.js?v=26"></script>
 <script src="js/comments.js?v=26"></script>
 <script src="js/player.js?v=26"></script>
 <script src="js/lyrics.js?v=26"></script>
 <script src="js/imgedit.js?v=26"></script>
-<script src="js/admin.js?v=28"></script>
+<script src="js/admin.js?v=29"></script>
 <script src="js/guestbook.js?v=26"></script>
 <script src="js/gallery.js?v=26"></script>
 <script src="js/journal.js?v=26"></script>
 <script src="js/router.js?v=28"></script>
 <script src="js/theme.js?v=28"></script>
 <script src="js/clock.js?v=2"></script>
+<!-- 新增：双人归属标签 + 作品筛选（纯前端，不改动 js/ 里其它文件） -->
+<script src="js/duo.js?v=1"></script>
 
 </body>
 </html>

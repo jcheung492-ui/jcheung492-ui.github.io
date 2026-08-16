@@ -281,6 +281,7 @@
         title: d.title || "", en: d.en || "", year: d.year || "",
         role: d.role || "", desc: d.desc || ""
       };
+      if (d.who) entry.who = d.who;   // 归属：justin / kinwah / both（未标注就不写这个键）
       if (d.credits) entry.credits = d.credits;
       if (d.lyrics) entry.lyrics = d.lyrics;
       const base = d.id.replace(/^custom-/, "up-");
@@ -306,6 +307,8 @@
         role: ed.role || "", desc: ed.desc || "",
         cover: t.cover, src: t.src   // 默认保留线上原文件
       };
+      const edWho = ed.who != null ? ed.who : (t.who || "");
+      if (edWho) entry.who = edWho;
       const edCredits = ed.credits != null ? ed.credits : (t.credits || "");
       const edLyrics = ed.lyrics != null ? ed.lyrics : (t.lyrics || "");
       if (edCredits) entry.credits = edCredits;
@@ -360,6 +363,21 @@
     );
     const finalGalOrder = uniq(galBaseOrder.filter((id) => validGalIds.has(id)));
 
+    // ---- 站点图片（合照 / 两人照片）：先把 blob 排进待提交文件，再把新路径写进文案草稿 ----
+    // 路径自带时间戳，天然破缓存；之后 getMergedForPublish() 会自然带上这几个键
+    const siteImgs = window.siteImgLib ? await window.siteImgLib.getAll() : [];
+    let si = 0;
+    for (const it of siteImgs) {
+      si++;
+      step("处理站点图片 " + si + "/" + siteImgs.length + "…");
+      if (!it.blob) continue;
+      const ext = extOf(it.blob, "jpg");
+      const safe = it.key.replace(/[^a-z0-9]+/gi, "-");
+      const path = "uploads/site-" + safe + "-" + Date.now() + "." + ext;
+      treeFiles.push({ path: path, base64: await fileToBase64(it.blob), size: it.blob.size || 0 });
+      if (window.textLib) window.textLib.setDraft(it.key, path);
+    }
+
     // ---- 站点文案：线上覆盖 ⊕ 草稿（只存与默认不同的键）----
     const textChanged = !!(window.textLib && window.textLib.pendingCount() > 0);
     const finalText = window.textLib
@@ -410,6 +428,7 @@
       (reordered ? "↕ 调整展示顺序 " : "") +
       (galReordered ? "↕ 照片顺序 " : "") +
       (textChanged ? "✎ 文案 " : "") +
+      (siteImgs.length ? ("🖼 " + siteImgs.length + " 张站点图片 ") : "") +
       "（管理面板发布）";
     const commit = await gh("/git/commits", "POST", {
       message: msg.trim(), tree: newTree.sha, parents: [baseSha]
@@ -431,13 +450,14 @@
     if (gallery) await gallery.clearLocalAfterPublish();
     if (journal) await journal.clearLocalAfterPublish();
     if (window.textLib) window.textLib.clearLocalAfterPublish();
+    if (window.siteImgLib) await window.siteImgLib.clearLocalAfterPublish();
 
     return {
       commit: commit.sha,
       added: newEntries.length, edited: ei, removed: pendingDelete.length,
       galAdded: newGalEntries.length, galRemoved: galPendingDelete.length, galReordered: galReordered,
       jourAdded: newJourEntries.length, jourEdited: jourEdited, jourRemoved: jourPendingDelete.length,
-      reordered: reordered, textChanged: textChanged
+      reordered: reordered, textChanged: textChanged, siteImgs: siteImgs.length
     };
   }
 
