@@ -223,6 +223,31 @@ window.SITE_GALLERY_PUBLISHED = [
     "id": "gcustom-1783007315967-6698",
     "caption": "ACG专场音乐会in海岸城",
     "src": "gallery/gup-1783007315967-6698.jpg"
+  },
+  {
+    "id": "gcustom-1787410934366-4953",
+    "caption": "",
+    "src": "gallery/gup-1787410934366-4953.jpg"
+  },
+  {
+    "id": "gcustom-1787410962292-7939",
+    "caption": "判官军团",
+    "src": "gallery/gup-1787410962292-7939.jpg"
+  },
+  {
+    "id": "gcustom-1787410984251-9801",
+    "caption": "编曲Day",
+    "src": "gallery/gup-1787410984251-9801.jpg"
+  },
+  {
+    "id": "gcustom-1787411002535-5316",
+    "caption": "宋小宝",
+    "src": "gallery/gup-1787411002535-5316.jpg"
+  },
+  {
+    "id": "gcustom-1787411060634-5710",
+    "caption": "Kinwah之座骑",
+    "src": "gallery/gup-1787411060634-5710.jpg"
   }
 ];
 window.SITE_GALLERY_HIDDEN = [
@@ -250,7 +275,7 @@ window.SITE_JOURNAL_PUBLISHED = [
   },
   {
     "id": "jcustom-1786894231248-2518",
-    "date": "2026.0816",
+    "date": "2026.08.16",
     "title": "今天有新来宾",
     "body": "没啥事，发发牢骚"
   }
@@ -300,7 +325,7 @@ window.SITE_TEXT = {
   "contact.wechat.value": "Lunamar_",
   "cat.album.intro": "听听看我做过啥",
   "footer.copy": "© 2026 张百星 Justin · 谢谢你看到这里",
-  "home.hero.line": " SoundTruth·拳头响了 —— Justin和 KinWah。可以随便听听，也可以留句话。*不急*。",
+  "home.hero.line": "可以随便听听，也可以留句话。*不急*。",
   "home.strip.journal": "总会有些感悟的吧",
   "contact.email.value": "justincheungmusic@163.com",
   "contact.email.sub": "24–48 小时内回复",
@@ -313,5 +338,7 @@ window.SITE_TEXT = {
   "cat.film.intro": "参与过的影视项目。",
   "works.sub": "专辑、广告配乐、游戏配乐可以直接听；还是做了些作品的",
   "about.fact1.dt": "演唱",
-  "site.portrait.kinwah": "uploads/site-site-portrait-kinwah-1786893878411.jpg"
+  "site.portrait.kinwah": "uploads/site-site-portrait-kinwah-1786893878411.jpg",
+  "about.fact4.dd": "夏日企划（夏天快过去了...",
+  "site.portrait.duo": "uploads/site-site-portrait-duo-1787411086552.jpg"
 };
