@@ -296,11 +296,11 @@ window.SITE_ORDER = [
   "builtin-sketch-subway"
 ];
 window.SITE_TEXT = {
-  "home.hero.title": "憋说话。\n坐一会儿，\n*来了解下我*。",
+  "home.hero.title": "憋说话。\n坐一会儿，\n*来了解下我们*。",
   "contact.wechat.value": "Lunamar_",
   "cat.album.intro": "听听看我做过啥",
   "footer.copy": "© 2026 张百星 Justin · 谢谢你看到这里",
-  "home.hero.line": "Justin，振钧、百星，都是我。可以随便听听，也可以留句话。*不急*。",
+  "home.hero.line": " SoundTruth·拳头响了 —— Justin和 KinWah。可以随便听听，也可以留句话。*不急*。",
   "home.strip.journal": "总会有些感悟的吧",
   "contact.email.value": "justincheungmusic@163.com",
   "contact.email.sub": "24–48 小时内回复",
